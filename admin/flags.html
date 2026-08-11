@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Duplicate Checks — Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .flag-group { margin-bottom: 22px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .flag-group-header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 12px 16px; background: var(--bg-panel-2); border-bottom: 1px solid var(--border);
+    font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.04em;
+  }
+  .flag-group-header .val { color: var(--danger); font-weight: 700; }
+  .flag-rows { padding: 4px 0; }
+  .flag-row { display:flex; justify-content:space-between; padding: 10px 16px; font-size: 13.5px; border-top: 1px solid var(--border); }
+  .flag-row:first-child { border-top: none; }
+  .flag-row .badge { padding: 2px 8px; border-radius: 100px; font-size: 10.5px; text-transform: uppercase; font-weight: 700; }
+  .badge-pending { background: rgba(255,201,60,0.15); color: var(--gold); }
+  .badge-approved { background: rgba(53,214,138,0.15); color: var(--success); }
+  .badge-rejected { background: rgba(255,92,92,0.15); color: var(--danger); }
+  .badge-waiting { background: rgba(0,229,199,0.15); color: var(--cyan); }
+  .badge-disqualified { background: rgba(245,243,239,0.1); color: var(--text-3); }
+  .clean-state { color: var(--success); font-family: var(--f-mono); font-size: 13.5px; padding: 20px; text-align: center; }
+  .flag-section-title { font-size: 15px; margin: 26px 0 10px; color: var(--text-2); font-family: var(--f-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+  .flag-section-title:first-child { margin-top: 0; }
+</style>
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <strong>ADAN <span style="color:var(--ember)">FF</span></strong>
+    <span>Tournament Admin</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="#" class="disabled">Tournaments <span class="nav-tag">soon</span></a>
+    <a href="registrations.html">Registrations</a>
+    <a href="flags.html" class="active">Duplicate Checks</a>
+    <a href="teams.html">Teams</a>
+    <a href="players.html">Players</a>
+    <a href="matches.html">Matches</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="#" class="disabled">Room Control <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Announcements <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Rules <span class="nav-tag">soon</span></a>
+    <a href="tournament-settings.html">Tournament Settings</a>
+    <a href="live-control.html">Live Control</a>
+    <a href="ai.html">AI Manager</a>
+    <a href="audit-log.html">Audit Log</a>
+  </nav>
+  <div class="admin-footer-nav">
+    <button id="logoutBtn">Logout</button>
+  </div>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <h1>Duplicate &amp; Fraud Checks</h1>
+    <span class="admin-user" id="adminUserLabel">…</span>
+  </div>
+
+  <div class="admin-content">
+    <div class="admin-panel">
+      <p style="color:var(--text-2); font-size:13.5px; margin-bottom:20px;">
+        Rule-based checks across all registrations — no AI needed. Re-run automatically every time you open this page.
+      </p>
+      <div id="results" class="admin-loading">Scanning registrations…</div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="admin-auth.js"></script>
+<script src="flags.js"></script>
+</body>
+</html>

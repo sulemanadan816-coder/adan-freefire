@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard — Pakistan Elite Free Fire Tournament</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <strong>ADAN <span style="color:var(--ember)">FF</span></strong>
+    <span>Tournament Admin</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="#" class="disabled">Tournaments <span class="nav-tag">soon</span></a>
+    <a href="registrations.html">Registrations</a>
+    <a href="flags.html">Duplicate Checks</a>
+    <a href="teams.html">Teams</a>
+    <a href="players.html">Players</a>
+    <a href="matches.html">Matches</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="#" class="disabled">Room Control <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Announcements <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Rules <span class="nav-tag">soon</span></a>
+    <a href="tournament-settings.html">Tournament Settings</a>
+    <a href="live-control.html">Live Control</a>
+    <a href="ai.html">AI Manager</a>
+    <a href="audit-log.html">Audit Log</a>
+  </nav>
+  <div class="admin-footer-nav">
+    <button id="logoutBtn">Logout</button>
+  </div>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <h1>Dashboard</h1>
+    <span class="admin-user" id="adminUserLabel">…</span>
+  </div>
+
+  <div class="admin-content">
+    <div class="stats-cards" id="statsCards">
+      <div class="stat-card"><div class="label">Registered Teams</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Total Players</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Pending Registrations</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Approved Teams</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Rejected Teams</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Disqualified Teams</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Available Slots</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Total Prize Pool</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Tournament Status</div><div class="value small admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Registration Status</div><div class="value small admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Next Match</div><div class="value small admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Live Stream</div><div class="value small admin-loading">loading…</div></div>
+    </div>
+
+    <div class="admin-panel">
+      <h2>Latest Registrations</h2>
+      <div id="latestRegs" class="admin-loading">Loading…</div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="admin-auth.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

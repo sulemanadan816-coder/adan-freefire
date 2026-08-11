@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Donations — Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .don-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .don-tab {
+    padding: 8px 16px; border-radius: 100px; font-size: 12.5px; font-weight: 700;
+    border: 1px solid var(--border-strong); color: var(--text-2);
+  }
+  .don-tab.active { background: var(--gold); color: #1a1200; border-color: transparent; }
+  .don-row {
+    display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 12px; align-items: center;
+    padding: 14px 16px; border-top: 1px solid var(--border); font-size: 13.5px;
+  }
+  .don-row:first-child { border-top: none; }
+  .don-row .name { font-weight: 700; }
+  .don-row .sub { color: var(--text-3); font-size: 11.5px; font-family: var(--f-mono); margin-top: 2px; }
+  .don-amount { font-family: var(--f-mono); font-weight: 700; color: var(--gold); font-size: 15px; }
+  .don-actions { display: flex; gap: 8px; }
+  .don-actions button { padding: 7px 13px; border-radius: 7px; font-size: 12px; font-weight: 700; }
+  .btn-verify { background: rgba(53,214,138,0.15); color: var(--success); border: 1px solid rgba(53,214,138,0.4); }
+  .btn-verify:hover { background: rgba(53,214,138,0.25); }
+  .btn-reject { background: rgba(255,92,92,0.15); color: var(--danger); border: 1px solid rgba(255,92,92,0.4); }
+  .btn-reject:hover { background: rgba(255,92,92,0.25); }
+  .don-empty { text-align: center; color: var(--text-3); padding: 30px; font-size: 13.5px; }
+</style>
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <strong>ADAN <span style="color:var(--ember)">FF</span></strong>
+    <span>Tournament Admin</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="#" class="disabled">Tournaments <span class="nav-tag">soon</span></a>
+    <a href="registrations.html">Registrations</a>
+    <a href="donations.html" class="active">Donations</a>
+    <a href="flags.html">Duplicate Checks</a>
+    <a href="teams.html">Teams</a>
+    <a href="players.html">Players</a>
+    <a href="matches.html">Matches</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="#" class="disabled">Room Control <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Announcements <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Rules <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Tournament Settings <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Live Control <span class="nav-tag">soon</span></a>
+    <a href="ai.html">AI Manager</a>
+    <a href="audit-log.html">Audit Log</a>
+  </nav>
+  <div class="admin-footer-nav">
+    <a id="waQuickLink" href="" target="_blank" rel="noopener" style="display:block; text-align:center; font-size:12px; color:#25d366; margin-bottom:10px; font-weight:700;">💬 WhatsApp Community</a>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <h1>Donations — Support A Player Fund</h1>
+    <span class="admin-user" id="adminUserLabel">…</span>
+  </div>
+
+  <div class="admin-content">
+    <div class="stats-cards" id="donStats">
+      <div class="stat-card"><div class="label">Verified Total</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Pending Verification</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Rejected</div><div class="value admin-loading">loading…</div></div>
+      <div class="stat-card"><div class="label">Total Supporters</div><div class="value admin-loading">loading…</div></div>
+    </div>
+
+    <div class="admin-panel">
+      <div class="don-tabs" id="donTabs">
+        <button class="don-tab active" data-status="pending">Pending</button>
+        <button class="don-tab" data-status="verified">Verified</button>
+        <button class="don-tab" data-status="rejected">Rejected</button>
+      </div>
+      <div id="donList" class="admin-loading">Loading donations…</div>
+    </div>
+  </div>
+</main>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="../config.js"></script>
+<script src="admin-auth.js"></script>
+<script>
+  (function(){
+    var el = document.getElementById("waQuickLink");
+    if (el && window.CONFIG && CONFIG.social && CONFIG.social.whatsapp) {
+      el.href = CONFIG.social.whatsapp;
+    } else if (el) { el.style.display = "none"; }
+  })();
+</script>
+<script src="donations.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Live Control — Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .status-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .status-row button {
+    padding:12px 18px; border-radius:10px; font-weight:700; font-size:13px;
+    background: var(--bg-panel-2); border:1px solid var(--border); color: var(--text-2);
+  }
+  .status-row button.current { border-color: var(--ember); color: var(--ember); background: var(--ember-soft); }
+  .status-row button:hover { border-color: var(--border-strong); }
+  .room-pub-status { display:inline-flex; align-items:center; gap:8px; font-family:var(--f-mono); font-size:12px; padding:6px 12px; border-radius:100px; margin-bottom:16px; }
+  .room-pub-status.on { background: rgba(53,214,138,0.15); color: var(--success); }
+  .room-pub-status.off { background: rgba(245,243,239,0.1); color: var(--text-3); }
+  .wa-preview {
+    background: var(--bg-panel-2); border:1px solid var(--border); border-radius: var(--radius-sm);
+    padding:14px 16px; font-size:13px; color: var(--text-2); white-space: pre-wrap; margin: 12px 0;
+    font-family: var(--f-mono); line-height:1.6;
+  }
+  .wa-btn { background: linear-gradient(100deg, #25d366, #128c4f); color:#06130a; }
+</style>
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <strong>ADAN <span style="color:var(--ember)">FF</span></strong>
+    <span>Tournament Admin</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="#" class="disabled">Tournaments <span class="nav-tag">soon</span></a>
+    <a href="registrations.html">Registrations</a>
+    <a href="flags.html">Duplicate Checks</a>
+    <a href="teams.html">Teams</a>
+    <a href="players.html">Players</a>
+    <a href="matches.html">Matches</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="live-control.html" class="active">Live Control</a>
+    <a href="#" class="disabled">Announcements <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Rules <span class="nav-tag">soon</span></a>
+    <a href="tournament-settings.html">Tournament Settings</a>
+    <a href="ai.html">AI Manager</a>
+    <a href="audit-log.html">Audit Log</a>
+  </nav>
+  <div class="admin-footer-nav">
+    <button id="logoutBtn">Logout</button>
+  </div>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <h1>Live Control</h1>
+    <span class="admin-user" id="adminUserLabel">…</span>
+  </div>
+
+  <div class="admin-content" id="content">
+    <div class="admin-loading" style="padding:20px;">Loading…</div>
+  </div>
+</main>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="../config.js"></script>
+<script src="admin-auth.js"></script>
+<script src="live-control.js"></script>
+</body>
+</html>

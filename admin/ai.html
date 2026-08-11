@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Manager — Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <strong>ADAN <span style="color:var(--ember)">FF</span></strong>
+    <span>Tournament Admin</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="#" class="disabled">Tournaments <span class="nav-tag">soon</span></a>
+    <a href="registrations.html">Registrations</a>
+    <a href="donations.html">Donations</a>
+    <a href="flags.html">Duplicate Checks</a>
+    <a href="teams.html">Teams</a>
+    <a href="players.html">Players</a>
+    <a href="matches.html">Matches</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="#" class="disabled">Room Control <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Announcements <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Rules <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Tournament Settings <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Live Control <span class="nav-tag">soon</span></a>
+    <a href="ai.html" class="active">AI Manager</a>
+    <a href="audit-log.html">Audit Log</a>
+  </nav>
+  <div class="admin-footer-nav">
+    <a id="waQuickLink" href="" target="_blank" rel="noopener" style="display:block; text-align:center; font-size:12px; color:#25d366; margin-bottom:10px; font-weight:700;">💬 WhatsApp Community</a>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <h1>AI Tournament Manager</h1>
+    <span class="admin-user" id="adminUserLabel">…</span>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- TODAY'S SUMMARY -->
+    <div class="stats-cards" id="aiStats">
+      <div class="stat-card"><div class="label">Registrations Today</div><div class="value admin-loading">…</div></div>
+      <div class="stat-card"><div class="label">Pending</div><div class="value admin-loading">…</div></div>
+      <div class="stat-card"><div class="label">Approved</div><div class="value admin-loading">…</div></div>
+      <div class="stat-card"><div class="label">Slots Remaining</div><div class="value admin-loading">…</div></div>
+      <div class="stat-card"><div class="label">Payment Verified</div><div class="value admin-loading">…</div></div>
+      <div class="stat-card"><div class="label">Unpaid / Unverified</div><div class="value admin-loading">…</div></div>
+      <div class="stat-card"><div class="label">Flagged / Suspicious</div><div class="value admin-loading">…</div></div>
+      <div class="stat-card"><div class="label">Rejected</div><div class="value admin-loading">…</div></div>
+    </div>
+
+    <div class="ai-grid">
+      <!-- LEFT: CHAT -->
+      <div class="admin-panel">
+        <h2>AI Chat</h2>
+        <div class="ai-suggest-chips">
+          <button class="ai-suggest-chip" data-q="Show today's registrations">Today's registrations</button>
+          <button class="ai-suggest-chip" data-q="How many slots remain?">Slots remaining</button>
+          <button class="ai-suggest-chip" data-q="Find duplicate UIDs">Duplicate UIDs</button>
+          <button class="ai-suggest-chip" data-q="Show suspicious registrations">Suspicious regs</button>
+          <button class="ai-suggest-chip" data-q="Generate tournament report">Tournament report</button>
+          <button class="ai-suggest-chip" data-q="Who registered last?">Last registration</button>
+        </div>
+        <div class="ai-chat-panel">
+          <div class="ai-chat-log" id="aiChatLog"></div>
+          <div class="ai-chat-input-row">
+            <input type="text" id="aiChatInput" placeholder="Ask about registrations, payments, duplicates, reports…">
+            <button id="aiChatSend">Ask</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: AUTOMATION + HEALTH -->
+      <div>
+        <div class="admin-panel" style="margin-bottom:20px;">
+          <h2>Automation</h2>
+          <div class="ai-mode-row" id="aiModeRow">
+            <button class="ai-mode-btn" data-mode="off">OFF<small>Agent does nothing</small></button>
+            <button class="ai-mode-btn" data-mode="suggestions">Suggestions<small>Queues ideas only</small></button>
+          </div>
+          <div class="ai-mode-row">
+            <button class="ai-mode-btn" data-mode="semi">Semi-Automatic<small>Queue + bulk apply</small></button>
+            <button class="ai-mode-btn mode-automatic" data-mode="automatic">Automatic<small>Acts on its own</small></button>
+          </div>
+          <button class="ai-run-btn" id="aiRunNowBtn">▶ Run Agent Now</button>
+          <div class="ai-last-run" id="aiLastRun">Last run: —</div>
+          <p style="font-size:11.5px; color:var(--text-3); margin-top:12px; line-height:1.5;">
+            Even in <strong>Automatic</strong> mode, the agent never approves an unpaid registration and never auto-resolves a flagged duplicate — those always wait for you. It runs on a schedule server-side (see deployment guide), so it keeps working while you're offline.
+          </p>
+        </div>
+
+        <div class="admin-panel" style="margin-bottom:20px;">
+          <h2>Health</h2>
+          <div class="ai-health-list" id="aiHealthList">
+            <div class="ai-health-item admin-loading">Checking…</div>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <h2>Agent Activity (proof it ran while you were away)</h2>
+          <div id="aiRunLog" class="admin-loading">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUGGESTIONS QUEUE -->
+    <div class="admin-panel" style="margin-top:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="margin:0;">AI Suggestions Queue</h2>
+        <button class="btn btn-secondary" id="aiBulkApplyBtn" style="padding:9px 16px; font-size:12.5px;">Apply All Safe Suggestions</button>
+      </div>
+      <div id="aiSuggestionsList" class="admin-loading">Loading…</div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="../config.js"></script>
+<script src="admin-auth.js"></script>
+<script>
+  (function(){
+    var el = document.getElementById("waQuickLink");
+    if (el && window.CONFIG && CONFIG.social && CONFIG.social.whatsapp) {
+      el.href = CONFIG.social.whatsapp;
+    } else if (el) { el.style.display = "none"; }
+  })();
+</script>
+<script src="ai.js"></script>
+</body>
+</html>

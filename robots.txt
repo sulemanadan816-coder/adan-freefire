@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+
+Sitemap: https://EDIT_ME_YOUR_DOMAIN.com/sitemap.xml

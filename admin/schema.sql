@@ -1,0 +1,15 @@
+-- MOVED — do not use this file.
+--
+-- This was a stale, pre-hardening duplicate of the root schema.sql that
+-- still auto-granted every new signup role = 'owner' (the critical bug
+-- fixed in migration_security_hardening.sql). It has been replaced with
+-- this stub to prevent anyone from pasting it into Supabase by mistake.
+--
+-- Use the real, current schema instead:
+--   ../schema.sql
+-- ...and then run:
+--   ../migration_security_hardening.sql
+--   ../migration_registration_guardrails.sql
+-- (and any other migration_*.sql in the repo root not yet applied)
+--
+-- See ../SETUP_GUIDE.md for the full, correct setup sequence.

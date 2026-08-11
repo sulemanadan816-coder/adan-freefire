@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adan Free Fire Tournament — Live on YouTube | Register Now</title>
+<meta name="description" content="Adan Free Fire Tournament — a competitive Free Fire esports event in Pakistan. Register your squad, check the live leaderboard, and watch every match live on YouTube.">
+<meta name="keywords" content="Free Fire Tournament, Free Fire Tournament Pakistan, Free Fire Live Tournament, Free Fire Esports, Free Fire Live YouTube, Free Fire Competition">
+<meta name="author" content="Adan">
+<!-- EDIT_ME: replace with your real domain once you have one, and update it in config.js (share.url) + robots.txt + sitemap.xml too -->
+<link rel="canonical" href="https://EDIT_ME_YOUR_DOMAIN.com/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Adan Free Fire Tournament — Live on YouTube">
+<meta property="og:description" content="Register your squad and watch the Adan Free Fire Tournament live on YouTube. Prize pool, live leaderboard, match schedule and more.">
+<meta property="og:image" content="assets/og-cover.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Adan Free Fire Tournament — Live on YouTube">
+<meta name="twitter:description" content="Register your squad and watch every match live on YouTube.">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================================================ TOASTS -->
+<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+<!-- ============================================================ NAV -->
+<div id="nav-root">
+  <div class="ticker-bar" aria-hidden="true">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+  <nav class="navbar">
+    <div class="container">
+      <a href="#home" class="brand">
+        <span class="brand-mark">A</span>
+        <span class="brand-name">ADAN <span>FF</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#home" class="active">Home</a>
+        <a href="#tournament">Tournament</a>
+        <a href="#live">Live</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="#rules">Rules</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="nav-cta">
+        <a href="#register" class="btn btn-secondary btn-sm">Register</a>
+        <a href="#live" class="btn btn-primary btn-sm">Watch Live</a>
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#home">Home</a>
+    <a href="#tournament">Tournament</a>
+    <a href="#live">Live</a>
+    <a href="#schedule">Schedule</a>
+    <a href="#leaderboard">Leaderboard</a>
+    <a href="#rules">Rules</a>
+    <a href="#faq">FAQ</a>
+    <a href="#register">Register</a>
+    <a href="#live" class="btn btn-primary btn-block">Watch Live</a>
+  </div>
+</div>
+
+<!-- ============================================================ HERO -->
+<header class="hero" id="home">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-meta-row">
+          <span class="status-pill is-upcoming" id="heroStatusPill"><span class="live-dot"></span> Upcoming Live</span>
+          <span class="verified" id="verifiedBadge"><span class="ck">✓</span> Verified Organizer — Adan</span>
+        </div>
+        <div class="eyebrow">Free Fire Esports · Pakistan</div>
+        <h1>ADAN FREE FIRE<br><span class="text-gradient">TOURNAMENT</span></h1>
+        <p class="hero-sub">Squad up and prove it on the sand. A competitive Free Fire tournament organized by Adan — every match streamed live on YouTube, results tracked on a live leaderboard.</p>
+
+        <div class="hero-facts">
+          <div>
+            <div class="hero-fact-label">Prize Pool</div>
+            <div class="hero-fact-value" id="factPrize">—</div>
+          </div>
+          <div>
+            <div class="hero-fact-label">Entry Fee</div>
+            <div class="hero-fact-value" id="factEntry">—</div>
+          </div>
+          <div>
+            <div class="hero-fact-label">Slots</div>
+            <div class="hero-fact-value" id="factSlots">—</div>
+          </div>
+        </div>
+
+        <div class="hero-actions">
+          <a href="#live" class="btn btn-primary" id="watchLiveBtnHero">▶ Watch Live</a>
+          <a href="#register" class="btn btn-secondary">Register Now</a>
+          <a href="#tournament" class="btn btn-ghost">View Tournament Details ↓</a>
+        </div>
+      </div>
+
+      <div class="hero-panel reveal" id="heroPanel">
+        <div class="hero-panel-head">
+          <span class="hero-panel-title">Match Starts In</span>
+          <span class="hero-panel-title" id="heroDateLabel">—</span>
+        </div>
+        <div class="countdown-grid" id="countdownGrid">
+          <div class="countdown-cell"><div class="countdown-num" id="cdDays">00</div><div class="countdown-label">Days</div></div>
+          <div class="countdown-cell"><div class="countdown-num" id="cdHours">00</div><div class="countdown-label">Hours</div></div>
+          <div class="countdown-cell"><div class="countdown-num" id="cdMins">00</div><div class="countdown-label">Minutes</div></div>
+          <div class="countdown-cell"><div class="countdown-num" id="cdSecs">00</div><div class="countdown-label">Seconds</div></div>
+        </div>
+        <div class="hero-panel-row"><span class="k">Game</span><span class="v" id="hpGame">—</span></div>
+        <div class="hero-panel-row"><span class="k">Mode</span><span class="v" id="hpMode">—</span></div>
+        <div class="hero-panel-row"><span class="k">Registration</span><span class="v" id="hpReg">—</span></div>
+        <div class="hero-panel-row" style="display:block;">
+          <div style="display:flex;justify-content:space-between;">
+            <span class="k">Slots Filled</span><span class="v" id="hpSlotsText">—</span>
+          </div>
+          <div class="slots-bar-track"><div class="slots-bar-fill" id="slotsBarFill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================ STATS STRIP -->
+<section class="section-tight" id="statsStripSection">
+  <div class="container">
+    <div class="stats-strip reveal" id="statsStrip"></div>
+  </div>
+</section>
+
+<!-- ============================================================ TOURNAMENT OVERVIEW -->
+<section class="section" id="tournament">
+  <div class="container">
+    <div class="eyebrow reveal">Tournament Overview</div>
+    <h2 class="section-title reveal">The Full Breakdown</h2>
+    <p class="section-sub reveal">Everything you need to know about the tournament, in one place.</p>
+    <div class="info-grid" id="infoGrid"></div>
+  </div>
+</section>
+
+<!-- ============================================================ WATCH LIVE -->
+<section class="section" id="live">
+  <div class="container">
+    <div class="eyebrow reveal">Broadcast</div>
+    <h2 class="section-title reveal">Watch <span class="text-gradient">Live</span> On YouTube</h2>
+    <p class="section-sub reveal">Every match, streamed live. No delay, no re-uploads — watch it as it happens.</p>
+
+    <div class="watch-shell reveal">
+      <div class="watch-player" id="watchPlayer"></div>
+      <div class="watch-info-bar">
+        <div class="watch-info-left">
+          <span class="status-pill is-upcoming" id="watchStatusPill"><span class="live-dot"></span> Upcoming</span>
+          <span class="watch-title" id="watchTitle">Adan Free Fire Tournament — Live Stream</span>
+          <span class="viewer-count" id="viewerCount"></span>
+        </div>
+        <div class="watch-info-actions">
+          <a href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" id="subscribeBtn">Subscribe</a>
+          <a href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" id="watchOnYtBtn">Watch on YouTube</a>
+          <button class="btn btn-ghost btn-sm" id="shareStreamBtn">Share Stream</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ REGISTRATION -->
+<section class="section" id="register">
+  <div class="container">
+    <div class="eyebrow reveal">Squad Sign-Up</div>
+    <h2 class="section-title reveal">Register Your <span class="text-gradient">Team</span></h2>
+    <p class="section-sub reveal">Fill in your squad details below. Your captain will be contacted with room details before match time.</p>
+
+    <div class="reg-wrap">
+      <div class="reg-side reveal">
+        <div class="card">
+          <div class="card-icon">①</div>
+          <h3>Before You Register</h3>
+          <ul>
+            <li>Have every player's exact in-game UID ready</li>
+            <li>Your team must have a working WhatsApp number for match-day contact</li>
+            <li>Double check spelling of your team name — it's used on the broadcast</li>
+            <li>Registration confirms your slot, not your final invite — check-in is still required</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-icon">②</div>
+          <h3>What Happens Next</h3>
+          <ul>
+            <li>You'll get a Registration ID immediately after submitting</li>
+            <li>The captain is contacted on WhatsApp for check-in</li>
+            <li>Room ID & password are released shortly before your match</li>
+          </ul>
+        </div>
+
+        <div class="pay-card" id="payCard">
+          <div class="pay-card-glow"></div>
+          <div class="pay-card-top">
+            <div class="pay-badge" id="payMethodBadge">Easypaisa</div>
+            <div class="pay-amount" id="payAmount">PKR 200</div>
+          </div>
+          <div class="pay-label">Send Entry Fee To</div>
+          <div class="pay-number-row">
+            <span class="pay-number" id="payNumber">0327-5067389</span>
+            <button type="button" class="pay-copy-btn" id="payCopyBtn">Copy</button>
+          </div>
+          <div class="pay-account-name">Account Name: <span id="payAccountName">Adan</span></div>
+          <p class="pay-instructions" id="payInstructions"></p>
+        </div>
+      </div>
+
+      <div class="form-card reveal">
+        <form id="regForm" novalidate>
+          <div class="form-grid">
+            <div class="field full">
+              <label for="teamName">Team Name</label>
+              <input type="text" id="teamName" placeholder="e.g. Shadow Reapers" required>
+              <div class="err" data-err="teamName"></div>
+            </div>
+            <div class="field">
+              <label for="captainName">Captain Name</label>
+              <input type="text" id="captainName" placeholder="Full name" required>
+              <div class="err" data-err="captainName"></div>
+            </div>
+            <div class="field">
+              <label for="ign">In-Game Name (IGN)</label>
+              <input type="text" id="ign" placeholder="Captain's IGN" required>
+              <div class="err" data-err="ign"></div>
+            </div>
+            <div class="field">
+              <label for="uid">Free Fire UID</label>
+              <input type="text" id="uid" inputmode="numeric" placeholder="e.g. 123456789" required>
+              <div class="err" data-err="uid"></div>
+            </div>
+            <div class="field">
+              <label for="whatsapp">WhatsApp Number</label>
+              <input type="tel" id="whatsapp" placeholder="03xx-xxxxxxx" required>
+              <div class="err" data-err="whatsapp"></div>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="you@example.com" required>
+              <div class="err" data-err="email"></div>
+            </div>
+            <div class="field">
+              <label for="city">City</label>
+              <input type="text" id="city" placeholder="e.g. Lahore" required>
+              <div class="err" data-err="city"></div>
+            </div>
+            <div class="field">
+              <label for="txnId">Easypaisa Transaction ID</label>
+              <input type="text" id="txnId" placeholder="e.g. 9812345678" required>
+              <div class="err" data-err="txnId"></div>
+            </div>
+            <div class="field">
+              <label for="payerNumber">Payment Sent From (Number)</label>
+              <input type="tel" id="payerNumber" placeholder="03xx-xxxxxxx" required>
+              <div class="err" data-err="payerNumber"></div>
+            </div>
+          </div>
+
+          <label style="font-family:var(--f-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:10px;">Team Members (UID required for each)</label>
+          <div id="playerRows"></div>
+          <button type="button" class="add-player-btn" id="addPlayerBtn">+ Add Player</button>
+
+          <button type="submit" class="btn btn-primary btn-block" id="regSubmitBtn">Submit Registration</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ LEADERBOARD -->
+<section class="section" id="leaderboard">
+  <div class="container">
+    <div class="eyebrow reveal">Standings</div>
+    <h2 class="section-title reveal">Live <span class="text-gradient">Leaderboard</span></h2>
+    <p class="section-sub reveal">Ranked by total points across all matches. <span class="demo-badge" id="lbDemoBadge">Demo Data</span></p>
+
+    <div class="podium reveal" id="podium"></div>
+
+    <div class="lb-toolbar reveal">
+      <div class="lb-search">
+        <span class="ic">⌕</span>
+        <input type="text" id="lbSearch" placeholder="Search team...">
+      </div>
+      <div class="lb-sorts" id="lbSorts">
+        <button class="chip active" data-sort="totalPts">Total Points</button>
+        <button class="chip" data-sort="kills">Kills</button>
+        <button class="chip" data-sort="rank">Rank</button>
+      </div>
+    </div>
+
+    <div class="lb-table-wrap reveal">
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th data-sort="rank">Rank</th>
+            <th data-sort="team">Team</th>
+            <th data-sort="matches">Matches</th>
+            <th data-sort="kills">Kills</th>
+            <th data-sort="placementPts">Placement Pts</th>
+            <th data-sort="totalPts">Total Points</th>
+          </tr>
+        </thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+    </div>
+    <div class="lb-updated"><span class="live-dot"></span> <span id="lbUpdatedText">Updated moments ago</span></div>
+  </div>
+</section>
+
+<!-- ============================================================ MATCH CENTER -->
+<section class="section" id="matches">
+  <div class="container">
+    <div class="eyebrow reveal">Live Match Center</div>
+    <h2 class="section-title reveal">Match <span class="text-gradient">Status</span></h2>
+    <p class="section-sub reveal">Real-time status of every match in the tournament. <span class="demo-badge">Demo Fixtures</span></p>
+    <div class="match-grid" id="matchGrid"></div>
+  </div>
+</section>
+
+<!-- ============================================================ SCHEDULE -->
+<section class="section" id="schedule">
+  <div class="container">
+    <div class="eyebrow reveal">Roadmap</div>
+    <h2 class="section-title reveal">Tournament <span class="text-gradient">Schedule</span></h2>
+    <p class="section-sub reveal">Tap a stage to see what happens at that step. The current stage is highlighted automatically.</p>
+    <div class="timeline reveal" id="timeline"></div>
+  </div>
+</section>
+
+<!-- ============================================================ ROOM DETAILS -->
+<section class="section-tight" id="room">
+  <div class="container">
+    <div class="room-card reveal" id="roomCard"></div>
+  </div>
+</section>
+
+<!-- ============================================================ RULEBOOK -->
+<section class="section" id="rules">
+  <div class="container">
+    <div class="eyebrow reveal">Rulebook</div>
+    <h2 class="section-title reveal">Tournament <span class="text-gradient">Rules</span></h2>
+    <p class="section-sub reveal">Read carefully before registering. Every participant is expected to know these rules.</p>
+    <div class="accordion-group" id="rulesAccordion"></div>
+  </div>
+</section>
+
+<!-- ============================================================ FAIR PLAY -->
+<section class="section-tight" id="fairplay">
+  <div class="container">
+    <div class="eyebrow reveal">Trust & Integrity</div>
+    <h2 class="section-title reveal">Fair Play Policy</h2>
+    <p class="section-sub reveal">Every match is officiated with a zero-tolerance stance on cheating.</p>
+    <div class="fairplay-grid" id="fairplayGrid"></div>
+  </div>
+</section>
+
+<!-- ============================================================ PRIZE POOL -->
+<section class="section" id="prizes">
+  <div class="container">
+    <div class="eyebrow reveal">Rewards</div>
+    <h2 class="section-title reveal">Prize <span class="text-gradient">Pool</span></h2>
+    <p class="section-sub reveal">Total pool: <b id="prizeTotalInline">—</b> <span class="demo-badge" id="prizeDemoBadge">Demo Amounts</span></p>
+    <div class="prize-podium" id="prizePodium"></div>
+    <div class="bonus-grid" id="bonusGrid"></div>
+  </div>
+</section>
+
+<!-- ============================================================ COMMUNITY -->
+<section class="section-tight" id="community">
+  <div class="container">
+    <div class="eyebrow reveal">Community</div>
+    <h2 class="section-title reveal">Join The Community</h2>
+    <p class="section-sub reveal">Follow for tournament updates, match reminders, and room ID releases.</p>
+    <div class="social-grid" id="socialGrid"></div>
+  </div>
+</section>
+
+<!-- ============================================================ FAQ -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="eyebrow reveal">Questions</div>
+    <h2 class="section-title reveal">Frequently Asked <span class="text-gradient">Questions</span></h2>
+    <div class="accordion-group" id="faqAccordion"></div>
+  </div>
+</section>
+
+<!-- ============================================================ FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <a href="#home" class="brand">
+        <span class="brand-mark">A</span>
+        <span class="brand-name">ADAN <span>FF</span></span>
+      </a>
+      <div class="footer-links">
+        <a href="#tournament">Tournament</a>
+        <a href="#rules">Rules</a>
+        <a href="#faq">FAQ</a>
+        <a href="#register">Register</a>
+        <a href="#" id="footerWhatsappBtn" target="_blank" rel="noopener">Join WhatsApp Community</a>
+        <button id="shareFooterBtn">Share Tournament</button>
+      </div>
+    </div>
+    <p class="footer-note">Organized independently by Adan. Not affiliated with or endorsed by Garena Free Fire. Leaderboard and match data are pulled live from the tournament database once the organizer publishes them — sections still marked "Demo" have not been published yet.</p>
+  </div>
+</footer>
+
+<!-- ============================================================ MOBILE STICKY CTA -->
+<div class="mobile-cta-bar" id="mobileCtaBar">
+  <a href="#live" class="btn btn-primary">▶ Watch Live</a>
+  <a href="#register" class="btn btn-secondary">Register</a>
+</div>
+
+<button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
+<a href="#" id="whatsappFloatBtn" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Join WhatsApp Community">
+  <span class="whatsapp-float-icon">💬</span>
+  <span class="whatsapp-float-label">Join Community</span>
+</a>
+
+<!-- ============================================================ REGISTRATION SUCCESS MODAL -->
+<div class="modal-overlay" id="regModal">
+  <div class="modal-box">
+    <button class="modal-close" id="regModalClose" aria-label="Close">✕</button>
+    <div class="modal-icon">✓</div>
+    <h3>Registration Successful</h3>
+    <p>Your squad is in. Save your Registration ID — you'll need it for check-in.</p>
+    <div class="modal-detail-row"><span class="k">Registration ID</span><span class="v" id="modalRegId">—</span></div>
+    <div class="modal-detail-row"><span class="k">Team Name</span><span class="v" id="modalTeamName">—</span></div>
+    <div class="modal-detail-row"><span class="k">Captain</span><span class="v" id="modalCaptainName">—</span></div>
+    <div class="modal-detail-row"><span class="k">Tournament</span><span class="v" id="modalTournamentName">—</span></div>
+    <p style="margin-top:16px;font-size:13px;">Next: your captain will be contacted on WhatsApp for check-in before the tournament starts.</p>
+    <a href="#" id="modalWhatsappBtn" target="_blank" rel="noopener" class="btn btn-secondary btn-block" style="margin-top:10px;">💬 Join WhatsApp Community</a>
+    <button class="btn btn-primary btn-block" style="margin-top:10px;" id="regModalOkBtn">Got It</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="config.js"></script>
+<script src="js/app.js"></script>
+<script src="js/realtime.js"></script>
+</body>
+</html>

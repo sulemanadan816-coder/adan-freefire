@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Matches — Admin</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center; }
+  .toolbar .spacer { flex:1; }
+  .toolbar select { padding:10px 12px; border-radius: var(--radius-sm); background: var(--bg-panel-2); border:1px solid var(--border); color: var(--text-1); font-size:13.5px; }
+  .reg-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  .reg-table th { text-align:left; padding:10px 8px; color:var(--text-3); font-family:var(--f-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border-strong); }
+  .reg-table td { padding:10px 8px; border-bottom:1px solid var(--border); vertical-align: top; }
+  .badge { display:inline-block; padding:3px 9px; border-radius:100px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; }
+  .badge-upcoming { background: rgba(0,229,199,0.15); color: var(--cyan); }
+  .badge-checkin { background: rgba(255,201,60,0.15); color: var(--gold); }
+  .badge-room_open { background: rgba(255,201,60,0.15); color: var(--gold); }
+  .badge-live { background: rgba(255,92,92,0.18); color: var(--danger); }
+  .badge-completed { background: rgba(53,214,138,0.15); color: var(--success); }
+  .badge-cancelled { background: rgba(245,243,239,0.1); color: var(--text-3); }
+  .row-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .row-actions button { font-size:11.5px; padding:6px 10px; border-radius:6px; font-weight:700; background: var(--bg-panel-2); border:1px solid var(--border); color: var(--text-2); }
+  .row-actions button:hover { border-color: var(--border-strong); color: var(--text-1); }
+  .row-actions button.danger:hover { color: var(--danger); border-color: var(--danger); }
+  .modal-overlay { position:fixed; inset:0; background:rgba(4,5,6,0.75); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:600; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal-box { background:var(--bg-panel); border:1px solid var(--border-strong); border-radius:var(--radius); padding:26px; max-width:480px; width:100%; max-height:85vh; overflow-y:auto; }
+  .modal-box.wide { max-width:640px; }
+  .modal-box .login-field input, .modal-box .login-field select {
+    width:100%; padding:11px 13px; border-radius: var(--radius-sm); background: var(--bg-panel-2);
+    border:1px solid var(--border); color: var(--text-1); font-size:14px; font-family:var(--f-body);
+  }
+  .field-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .modal-box .actions { display:flex; gap:10px; margin-top:20px; }
+  .score-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; }
+  .score-table th { text-align:left; padding:6px 6px; color:var(--text-3); font-family:var(--f-mono); font-size:10px; text-transform:uppercase; border-bottom:1px solid var(--border-strong); }
+  .score-table td { padding:6px 6px; border-bottom:1px solid var(--border); }
+  .score-table input { width:70px; padding:6px 8px; border-radius:6px; background:var(--bg-panel-2); border:1px solid var(--border); color:var(--text-1); font-size:13px; }
+</style>
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <strong>ADAN <span style="color:var(--ember)">FF</span></strong>
+    <span>Tournament Admin</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="#" class="disabled">Tournaments <span class="nav-tag">soon</span></a>
+    <a href="registrations.html">Registrations</a>
+    <a href="flags.html">Duplicate Checks</a>
+    <a href="teams.html">Teams</a>
+    <a href="players.html">Players</a>
+    <a href="matches.html" class="active">Matches</a>
+    <a href="leaderboard.html">Leaderboard</a>
+    <a href="#" class="disabled">Room Control <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Announcements <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Rules <span class="nav-tag">soon</span></a>
+    <a href="tournament-settings.html">Tournament Settings</a>
+    <a href="live-control.html">Live Control</a>
+    <a href="ai.html">AI Manager</a>
+    <a href="audit-log.html">Audit Log</a>
+  </nav>
+  <div class="admin-footer-nav">
+    <button id="logoutBtn">Logout</button>
+  </div>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <h1>Matches</h1>
+    <span class="admin-user" id="adminUserLabel">…</span>
+  </div>
+
+  <div class="admin-content">
+    <div class="admin-panel">
+      <div class="toolbar">
+        <select id="statusFilter">
+          <option value="">All statuses</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="checkin">Check-in</option>
+          <option value="room_open">Room Open</option>
+          <option value="live">Live</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <div class="spacer"></div>
+        <button class="btn btn-primary btn-sm" id="addMatchBtn">+ Create Match</button>
+      </div>
+
+      <div id="tableWrap" class="admin-loading">Loading…</div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-box">
+    <h3 id="confirmTitle" style="font-size:20px; margin-bottom:8px;">Are you sure?</h3>
+    <p id="confirmMsg" style="color:var(--text-2); font-size:13.5px;"></p>
+    <div class="actions">
+      <button class="btn btn-secondary" id="confirmCancel" style="flex:1;">Cancel</button>
+      <button class="btn btn-primary" id="confirmOk" style="flex:1;">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editOverlay">
+  <div class="modal-box">
+    <h3 style="font-size:20px; margin-bottom:16px;" id="editTitle">Edit Match</h3>
+    <div class="field-row-2">
+      <div class="login-field"><label>Match Number</label><input type="number" min="1" id="editNumber" /></div>
+      <div class="login-field"><label>Label</label><input type="text" id="editLabel" placeholder="e.g. Match 01" /></div>
+    </div>
+    <div class="field-row-2">
+      <div class="login-field"><label>Map</label><input type="text" id="editMap" placeholder="e.g. Bermuda" /></div>
+      <div class="login-field"><label>Mode</label><input type="text" id="editMode" placeholder="Squad" /></div>
+    </div>
+    <div class="login-field"><label>Scheduled Time</label><input type="datetime-local" id="editTime" /></div>
+    <div class="login-field"><label>Status</label>
+      <select id="editStatus">
+        <option value="upcoming">Upcoming</option>
+        <option value="checkin">Check-in</option>
+        <option value="room_open">Room Open</option>
+        <option value="live">Live</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" id="editCancel" style="flex:1;">Cancel</button>
+      <button class="btn btn-primary" id="editSave" style="flex:1;">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="scoresOverlay">
+  <div class="modal-box wide">
+    <h3 style="font-size:20px; margin-bottom:4px;" id="scoresTitle">Match Scores</h3>
+    <p style="color:var(--text-2); font-size:13px; margin-bottom:10px;">Saving recalculates each team's leaderboard totals automatically.</p>
+    <div id="scoresTableWrap"></div>
+    <div class="actions">
+      <button class="btn btn-secondary" id="scoresCancel" style="flex:1;">Close</button>
+      <button class="btn btn-primary" id="scoresSave" style="flex:1;">Save &amp; Publish Results</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="admin-auth.js"></script>
+<script src="matches.js"></script>
+</body>
+</html>
