@@ -400,6 +400,7 @@
       <div class="field">
         <label>Player ${playerCount} UID</label>
         <input type="text" class="player-uid" inputmode="numeric" placeholder="Free Fire UID">
+        <div class="err"></div>
       </div>
       <button type="button" class="rm" aria-label="Remove player">✕</button>`;
     wrap.querySelector(".rm").addEventListener("click", () => wrap.remove());
@@ -419,6 +420,20 @@
     return true;
   }
 
+  // Same as validateField(), but for the dynamically-created Player 2/3/4
+  // UID inputs, which don't have stable IDs to look up by (see addPlayerRow()).
+  function validatePlayerUidField(fieldEl, condition, msg) {
+    const err = fieldEl.querySelector(".err");
+    if (!condition) {
+      fieldEl.classList.add("has-error");
+      if (err) err.textContent = msg;
+      return false;
+    }
+    fieldEl.classList.remove("has-error");
+    if (err) err.textContent = "";
+    return true;
+  }
+
   function initPaymentCard() {
     const card = $("#payCard");
     if (!card) return;
@@ -432,10 +447,21 @@
     }
 
     const pay = CONFIG.payment || {};
+    const paymentConfigured = !isPlaceholder(pay.accountNumber) && !isPlaceholder(pay.accountName);
+
+    if (!paymentConfigured) {
+      card.innerHTML = `<p style="color:var(--text-3);font-family:var(--f-mono);font-size:13px;">
+        Payment details haven't been configured yet. Registration is temporarily unavailable — check back soon.
+      </p>`;
+      const submitBtn = $("#regSubmitBtn");
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Registration unavailable"; }
+      return;
+    }
+
     $("#payMethodBadge").textContent = pay.method || "Payment";
     $("#payAmount").textContent = fmtMoney(p.entryFee);
-    $("#payNumber").textContent = pay.accountNumber || "EDIT_ME";
-    $("#payAccountName").textContent = pay.accountName || "EDIT_ME";
+    $("#payNumber").textContent = pay.accountNumber;
+    $("#payAccountName").textContent = pay.accountName;
     $("#payInstructions").textContent = pay.instructions || "";
 
     $("#payCopyBtn").addEventListener("click", () => {
@@ -452,7 +478,7 @@
 
   function initRegistrationForm() {
     initPaymentCard();
-    for (let i = 0; i < 4; i++) addPlayerRow();
+    for (let i = 0; i < 3; i++) addPlayerRow();
     $("#addPlayerBtn").addEventListener("click", addPlayerRow);
 
     $("#regForm").addEventListener("submit", async (e) => {
@@ -474,12 +500,28 @@
       ok = validateField("ign", ign.length >= 2, "Enter a valid in-game name.") && ok;
       ok = validateField("uid", /^\d{6,12}$/.test(uid), "UID should be 6–12 digits.") && ok;
       ok = validateField("whatsapp", /^[\d+\-\s]{9,15}$/.test(whatsapp), "Enter a valid WhatsApp number.") && ok;
-      ok = validateField("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), "Enter a valid email address.") && ok;
+      ok = validateField("email", email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), "Enter a valid email address.") && ok;
       ok = validateField("city", city.length >= 2, "Enter your city.") && ok;
       if (!isFreeEntry) {
         ok = validateField("txnId", txnId.length >= 4, "Enter your Easypaisa Transaction ID.") && ok;
         ok = validateField("payerNumber", /^[\d+\-\s]{9,15}$/.test(payerNumber), "Enter the number payment was sent from.") && ok;
       }
+
+      // Player 2/3/4 UID validation. The captain (Player 1) is already
+      // validated above via #uid. Exactly 3 additional player rows are
+      // rendered by addPlayerRow() in initRegistrationForm() — captain + 3
+      // = 4 players total, per the squad size.
+      const playerRowEls = Array.from(document.querySelectorAll(".player-row"));
+      playerRowEls.forEach((row, idx) => {
+        const uidInput = row.querySelector(".player-uid");
+        const uidField = uidInput.closest(".field");
+        const playerNum = idx + 2; // captain is Player 1
+        ok = validatePlayerUidField(
+          uidField,
+          /^\d{6,12}$/.test(uidInput.value.trim()),
+          `Player ${playerNum} UID is required.`
+        ) && ok;
+      });
 
       if (!ok) {
         toast("Please fix the highlighted fields.", true);
@@ -573,7 +615,7 @@ $("#regForm").reset();
 $("#playerRows").innerHTML = "";
 playerCount = 0;
 
-for (let i = 0; i < 4; i++) addPlayerRow();
+for (let i = 0; i < 3; i++) addPlayerRow();
     });
   }
 
@@ -954,6 +996,65 @@ for (let i = 0; i < 4; i++) addPlayerRow();
   }
 
   /* ----------------------------------------------------------------------
+     MULTI-TENANT SLUG RESOLUTION
+     If the URL is /t/<slug> (or ?t=<slug> on hosts without a rewrite
+     rule configured yet — see _redirects / vercel.json), that specific
+     tournament is loaded instead of the single legacy is_active=true one.
+     Returns null when there's no slug in the URL, so the root site
+     (index.html with no path segment) behaves exactly as before.
+     -------------------------------------------------------------------- */
+  function getRequestedTournamentSlug() {
+    const pathMatch = window.location.pathname.match(/\/t\/([a-z0-9-]+)\/?$/i);
+    if (pathMatch) return pathMatch[1];
+    const qsSlug = new URLSearchParams(window.location.search).get("t");
+    return qsSlug || null;
+  }
+
+  // Applies an organization's white-label branding (name, logo, colors,
+  // socials) to CONFIG and to the page's CSS variables. Only called when
+  // a specific tournament was resolved by slug — the default legacy site
+  // never calls this, so its look is untouched.
+  async function hydrateBranding(organizationId, tournamentName) {
+    if (!organizationId) return;
+    try {
+      const { data: branding } = await window.db
+        .from("organization_branding")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+
+      if (!branding) return;
+
+      if (branding.primary_color) {
+        document.documentElement.style.setProperty("--ember", branding.primary_color);
+      }
+      if (branding.secondary_color) {
+        document.documentElement.style.setProperty("--cyan", branding.secondary_color);
+      }
+
+      if (branding.socials && typeof branding.socials === "object") {
+        CONFIG.social = Object.assign({}, CONFIG.social, branding.socials);
+      }
+
+      // Swap the brand mark/name in nav + footer to the organizer's own
+      // tournament, so a white-labeled page doesn't say "ADAN FF".
+      $$(".brand-name").forEach((el) => { el.textContent = tournamentName || el.textContent; });
+      if (branding.logo_url) {
+        $$(".brand-mark").forEach((el) => {
+          const img = document.createElement("img");
+          img.src = branding.logo_url;
+          img.alt = tournamentName || "Organizer logo";
+          img.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:inherit;";
+          el.textContent = "";
+          el.appendChild(img);
+        });
+      }
+    } catch (err) {
+      console.error("Branding hydration failed, falling back to default look.", err);
+    }
+  }
+
+  /* ----------------------------------------------------------------------
      LIVE DATABASE HYDRATION
      Pulls the active tournament + prize pool + entry fee + team slots +
      registration status from Supabase and overwrites the matching CONFIG
@@ -965,15 +1066,33 @@ for (let i = 0; i < 4; i++) addPlayerRow();
     if (!window.db) return; // supabase.js not loaded — fall back to config.js only
 
     try {
-      const { data: tournament } = await window.db
-        .from("tournaments").select("*").eq("is_active", true).single();
-      if (!tournament) return;
+      const requestedSlug = getRequestedTournamentSlug();
+
+      const { data: tournament } = requestedSlug
+        ? await window.db.from("tournaments").select("*").eq("slug", requestedSlug).maybeSingle()
+        : await window.db.from("tournaments").select("*").eq("is_active", true).single();
+
+      if (!tournament) {
+        if (requestedSlug) {
+          // A slug was requested but doesn't exist (or belongs to a
+          // suspended org, once that check exists) — say so plainly
+          // instead of silently showing the legacy demo tournament.
+          CONFIG.tournament.name = "Tournament Not Found";
+          CONFIG.tournament.status = "upcoming";
+          toast("No tournament found for this link.", true);
+        }
+        return;
+      }
 
       window.ACTIVE_TOURNAMENT_ID = tournament.id;
 
       CONFIG.tournament.name = tournament.name || CONFIG.tournament.name;
       CONFIG.tournament.status = tournament.status || CONFIG.tournament.status;
       CONFIG.tournament.isDemoStatus = false;
+
+      if (tournament.organization_id) {
+        await hydrateBranding(tournament.organization_id, tournament.name);
+      }
 
       if (tournament.start_date) {
         CONFIG.schedule.startDateISO = tournament.start_date;

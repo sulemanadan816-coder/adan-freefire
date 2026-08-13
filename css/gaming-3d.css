@@ -1,0 +1,293 @@
+/* =========================================================================
+   ADAN FREE FIRE TOURNAMENT — 3D / HUD DEPTH LAYER
+   -------------------------------------------------------------------------
+   Additive on top of style.css. Nothing here renames or removes an
+   existing class — every rule either extends a class that already exists
+   (.card, .match-card, .prize-card, .room-card, .pay-card, .podium-card,
+   .btn-primary, .reveal) or defines new classes scoped to the intro
+   sequence (#introOverlay, .intro-*). Loaded after style.css so these
+   rules can layer on top of it.
+
+   SIGNATURE ELEMENT: this site already had a "broadcast-HUD" identity in
+   its own design tokens (ember-vs-cyan signal colors, mono type for data).
+   The 3D layer leans into that rather than adding a generic neon-cyberpunk
+   skin: cards get a HUD-panel tilt + scan-line sheen on hover, and the
+   intro is a "system boot" sequence (a targeting reticle draws itself)
+   instead of a generic floating 3D logo.
+   ========================================================================= */
+
+:root {
+  --tiltX: 0deg;
+  --tiltY: 0deg;
+  --glass-bg: rgba(19, 21, 25, 0.55);
+  --glass-border: rgba(245, 243, 239, 0.14);
+}
+
+/* -------------------------------------------------------------------------
+   GLOBAL 3D STAGE — gives child elements a perspective to tilt within.
+   FIX (real root cause of the black screen): this used to be `body {
+   perspective: 1600px; }`. Setting `perspective` on an ancestor makes
+   that ancestor the *containing block* for any `position: fixed`
+   descendant (standard CSS behavior). Since `body` is an ancestor of
+   #introOverlay, .toast-stack, .mobile-cta-bar and .modal-overlay too,
+   every one of those fixed-position elements was silently being sized to
+   <body>'s full scroll-height box instead of the actual viewport —
+   for the intro, that meant a box thousands of pixels tall with the
+   title/button centered somewhere far below the visible screen, leaving
+   only solid black on screen (worse, whether that landed on-screen at
+   all also depended on scroll position, explaining the "sometimes").
+   Scoping perspective to #site3d (a wrapper around just the page content
+   in index.html, added purely for this reason) keeps the exact same 3D
+   tilt effect on every card, while leaving the intro overlay, toasts,
+   mobile CTA bar, and registration modal outside that containing-block
+   redirection so their `position: fixed` works normally again.
+   ------------------------------------------------------------------------- */
+#site3d { perspective: 1600px; }
+
+/* -------------------------------------------------------------------------
+   CARD DEPTH — pointer-tracked tilt (set via CSS custom properties by
+   js/effects.js) + glass sheen + layered ember/cyan glow on hover.
+   Falls back to the existing flat translateY hover from style.css when JS
+   hasn't run yet, or on touch devices (effects.js only binds pointermove
+   tilt when `(pointer: fine)` matches).
+   ------------------------------------------------------------------------- */
+.card, .match-card, .prize-card, .room-card, .pay-card, .podium-card {
+  transform-style: preserve-3d;
+  position: relative;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(160deg, rgba(27, 30, 36, 0.82), rgba(19, 21, 25, 0.72));
+  will-change: transform;
+}
+
+.card:hover, .match-card:hover, .prize-card:hover, .room-card:hover, .pay-card:hover, .podium-card:hover {
+  transform: translateY(-6px) rotateX(var(--tiltY)) rotateY(var(--tiltX)) translateZ(6px);
+  box-shadow:
+    0 24px 60px -28px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 77, 28, 0.16),
+    0 18px 46px -30px rgba(255, 77, 28, 0.35);
+}
+
+/* Thin scan-line sheen that sweeps across a card on hover — a HUD cue,
+   not decoration for its own sake: it's the same "signal sweeping across a
+   panel" idea the broadcast-HUD token names (ember/cyan "signal") imply. */
+.card::after, .match-card::after, .prize-card::after, .room-card::after, .pay-card::after, .podium-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 40%, rgba(0, 229, 199, 0.10) 50%, transparent 60%);
+  background-size: 220% 220%;
+  background-position: 130% 0%;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.card:hover::after, .match-card:hover::after, .prize-card:hover::after,
+.room-card:hover::after, .pay-card:hover::after, .podium-card:hover::after {
+  opacity: 1;
+  animation: hud-sweep 1.1s ease forwards;
+}
+@keyframes hud-sweep {
+  from { background-position: 130% 0%; }
+  to   { background-position: -30% 0%; }
+}
+
+/* -------------------------------------------------------------------------
+   3D ENTRANCE — replaces style.css's flat .reveal slide-up with a subtle
+   HUD-panel "power-on" tilt. Same class, same JS trigger (app.js's
+   IntersectionObserver just toggles .in) — only the motion changes.
+   ------------------------------------------------------------------------- */
+.reveal {
+  transform-style: preserve-3d;
+  transform: translateY(28px) rotateX(-10deg);
+  transform-origin: center bottom;
+}
+.reveal.in {
+  transform: translateY(0) rotateX(0deg);
+}
+
+/* -------------------------------------------------------------------------
+   NEON CTA — primary buttons get an ember glow pulse. Kept to primary
+   buttons only per the "spend boldness in one place" principle — ghost/
+   secondary buttons stay quiet.
+   ------------------------------------------------------------------------- */
+.btn-primary {
+  position: relative;
+  box-shadow: 0 0 0 rgba(255, 77, 28, 0);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+.btn-primary:hover {
+  box-shadow: 0 8px 30px -8px rgba(255, 77, 28, 0.55), 0 0 0 1px rgba(255, 77, 28, 0.4);
+  transform: translateY(-2px);
+}
+
+/* -------------------------------------------------------------------------
+   NAVBAR GLASS
+   ------------------------------------------------------------------------- */
+.navbar {
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* =========================================================================
+   INTRO SEQUENCE
+   ========================================================================= */
+#introOverlay {
+  /* FIX (real root cause of the black screen): `body { perspective: ... }`
+     above makes <body> the *containing block* for any `position: fixed`
+     descendant (this is normal CSS behavior for perspective/transform).
+     That meant `inset: 0` here was resolving against body's full
+     scroll-height box, not the viewport — sizing this overlay to
+     thousands of pixels tall and pushing the title/button far below the
+     visible screen, leaving only solid black on screen. Pinning to an
+     explicit viewport size instead of `inset: 0` fixes that regardless of
+     scroll position, page height, or the perspective rule above — no
+     change to the tilt effect itself. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background:
+    radial-gradient(ellipse 900px 500px at 50% 40%, rgba(255, 77, 28, 0.16), transparent 70%),
+    radial-gradient(ellipse 700px 400px at 50% 80%, rgba(0, 229, 199, 0.08), transparent 70%),
+    var(--bg-void);
+  overflow: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+#introOverlay.intro-exit {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#introOverlay[hidden] { display: none; }
+
+/* Reticle — SVG circle whose stroke draws itself in, like a HUD system
+   locking on. Sits behind the title, gives the "boot sequence" the intro
+   brief asked for without a 3D model or WebGL. */
+.intro-reticle {
+  position: relative;
+  width: 180px; height: 180px;
+  display: flex; align-items: center; justify-content: center;
+}
+.intro-reticle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.intro-reticle circle {
+  fill: none;
+  stroke-width: 1.5;
+}
+.intro-reticle .ring-outer { stroke: rgba(255, 77, 28, 0.35); stroke-dasharray: 8 6; animation: intro-spin 18s linear infinite; }
+.intro-reticle .ring-inner {
+  stroke: var(--ember);
+  stroke-dasharray: 502; /* ~2*pi*80 */
+  stroke-dashoffset: 502;
+  animation: intro-draw 1.4s cubic-bezier(.2,.8,.2,1) 0.2s forwards;
+}
+/* FIX (black-screen bug): every intro element below now defaults to fully
+   VISIBLE (opacity: 1 / no transform offset). The fade/slide-in look is
+   still produced by the same animations, but via `animation-fill-mode:
+   backwards` instead of the base rule starting at opacity: 0. That means:
+   - While the animation is running (or waiting on its delay), the element
+     shows the keyframe's `from` state — same visual as before.
+   - If CSS animations never fire at all (disabled, unsupported, throttled
+     by a backgrounded tab, or delayed) the element simply stays at its
+     base opacity: 1 state instead of being invisible forever.
+   Nothing about the animation timing, easing, or motion design changed. */
+.intro-mark {
+  position: absolute;
+  font-family: var(--f-display);
+  font-size: 52px;
+  color: var(--text-1);
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 22px rgba(255, 77, 28, 0.55);
+  opacity: 1;
+  animation: intro-fade-in 0.6s ease 0.9s backwards;
+}
+@keyframes intro-draw { to { stroke-dashoffset: 0; } }
+@keyframes intro-spin { to { transform: rotate(360deg); } }
+@keyframes intro-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.intro-title {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 5vw, 44px);
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--text-1);
+  text-transform: uppercase;
+  opacity: 1;
+  transform: translateY(0);
+  animation: intro-title-in 0.7s cubic-bezier(.2,.8,.2,1) 1.1s backwards;
+}
+.intro-title span { color: var(--ember); }
+.intro-sub {
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-align: center;
+  opacity: 1;
+  animation: intro-sub-in 0.7s cubic-bezier(.2,.8,.2,1) 1.3s backwards;
+}
+@keyframes intro-title-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes intro-sub-in { from { opacity: 0; } to { opacity: 1; } }
+
+.intro-enter-btn {
+  opacity: 1;
+  animation: intro-btn-in 0.7s cubic-bezier(.2,.8,.2,1) 1.55s backwards;
+}
+@keyframes intro-btn-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Embers — a handful of small divs drifting upward. Count and duration are
+   controlled from js/effects.js (kept low, GPU-cheap transform-only
+   animation, no layout thrash). */
+.intro-embers { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ember-particle {
+  position: absolute;
+  bottom: -20px;
+  width: var(--size, 4px); height: var(--size, 4px);
+  border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 8px 2px rgba(255, 77, 28, 0.6);
+  opacity: 0;
+  animation: ember-rise var(--dur, 6s) linear var(--delay, 0s) infinite;
+}
+@keyframes ember-rise {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  10%  { opacity: 0.9; }
+  90%  { opacity: 0.4; }
+  100% { transform: translate(var(--drift, 30px), -110vh); opacity: 0; }
+}
+
+body.intro-active { overflow: hidden; }
+
+/* -------------------------------------------------------------------------
+   REDUCED MOTION — the global rule in style.css already zeroes animation/
+   transition durations, which is enough to make every keyframe above
+   resolve instantly. The only extra thing needed here is making sure the
+   intro doesn't sit on screen requiring a click when motion is reduced —
+   handled in js/effects.js (skips the intro entirely in that case) rather
+   than in CSS, since "skip the gate" is a behavior change, not a style one.
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .card:hover, .match-card:hover, .prize-card:hover, .room-card:hover, .pay-card:hover, .podium-card:hover {
+    transform: none;
+  }
+  .card::after, .match-card::after, .prize-card::after, .room-card::after, .pay-card::after, .podium-card::after {
+    display: none;
+  }
+}
+
+/* Touch devices: no pointer-tracked tilt (effects.js doesn't bind it), but
+   also strip the rotateX/rotateY from the hover rule so a `:hover` that
+   sticks after a tap doesn't leave a card visually skewed. */
+@media (pointer: coarse) {
+  .card:hover, .match-card:hover, .prize-card:hover, .room-card:hover, .pay-card:hover, .podium-card:hover {
+    transform: translateY(-4px) translateZ(0);
+  }
+}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Organizer Dashboard — Adan Free Fire Platform</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../css/style.css" />
+<link rel="stylesheet" href="../admin/admin.css" />
+</head>
+<body class="admin-body">
+
+<aside class="admin-sidebar">
+  <div class="admin-brand">
+    <strong>ORG <span style="color:var(--ember)">HQ</span></strong>
+    <span>Organizer Portal</span>
+  </div>
+  <nav class="admin-nav">
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="#" class="disabled">Tournaments <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Branding <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Staff <span class="nav-tag">soon</span></a>
+    <a href="#" class="disabled">Billing <span class="nav-tag">soon</span></a>
+  </nav>
+  <div class="admin-footer-nav">
+    <button id="logoutBtn">Logout</button>
+  </div>
+</aside>
+
+<main class="admin-main">
+  <div class="admin-topbar">
+    <h1 id="orgNameHeading">Loading…</h1>
+    <span class="admin-user" id="roleBadge"></span>
+  </div>
+
+  <div id="expiredBanner" class="login-error show" style="display:none; margin: 0 28px 0; border-radius: var(--radius);"></div>
+
+  <div class="admin-content">
+    <div class="stats-cards">
+      <div class="stat-card"><div class="label">Subscription Status</div><div class="value small" id="subStatus">—</div></div>
+      <div class="stat-card"><div class="label">Plan Detail</div><div class="value small" id="subDetail">—</div></div>
+      <div class="stat-card"><div class="label">Your Role</div><div class="value small" id="roleValue">—</div></div>
+      <div class="stat-card"><div class="label">Tournaments</div><div class="value" id="tournamentCount">—</div></div>
+    </div>
+
+    <div class="admin-panel" style="margin-bottom: 20px;">
+      <h2>Plan Usage</h2>
+      <div id="usageList" class="admin-loading">Loading…</div>
+    </div>
+
+    <div class="admin-panel">
+      <h2>Your Tournaments</h2>
+      <div id="tournamentsEmpty" class="admin-loading" style="display:none;">No tournaments yet.</div>
+      <table style="display:none; width:100%; border-collapse:collapse;" id="tournamentsTable">
+        <thead>
+          <tr style="text-align:left; border-bottom:1px solid var(--border);">
+            <th style="padding:8px 6px;">Name</th>
+            <th style="padding:8px 6px;">Status</th>
+            <th style="padding:8px 6px;">Start Date</th>
+            <th style="padding:8px 6px;">Created</th>
+          </tr>
+        </thead>
+        <tbody id="tournamentsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase.js"></script>
+<script src="org-auth.js"></script>
+<script>
+  (async function () {
+    const auth = await requireOrg();
+    if (!auth) return; // requireOrg() already redirected
+
+    const { membership } = auth;
+    const orgId = membership.organization_id;
+    const orgName = (membership.organizations && membership.organizations.name) || "Your Organization";
+
+    document.getElementById("orgNameHeading").textContent = orgName;
+    document.getElementById("roleBadge").textContent = membership.role;
+    document.getElementById("roleValue").textContent = membership.role;
+
+    // Subscription status — real data, no placeholders
+    const { data: sub } = await window.db
+      .from("subscriptions")
+      .select("status, trial_ends_at, current_period_end, subscription_plans(name)")
+      .eq("organization_id", orgId)
+      .maybeSingle();
+
+    if (sub) {
+      document.getElementById("subStatus").textContent = sub.status;
+      const planName = sub.subscription_plans ? sub.subscription_plans.name : "Unknown Plan";
+      let detail = planName;
+      if (sub.status === "trial" && sub.trial_ends_at) {
+        detail += " — trial ends " + new Date(sub.trial_ends_at).toLocaleDateString();
+      } else if (sub.current_period_end) {
+        detail += " — renews " + new Date(sub.current_period_end).toLocaleDateString();
+      }
+      document.getElementById("subDetail").textContent = detail;
+    } else {
+      document.getElementById("subStatus").textContent = "No subscription";
+    }
+
+    // Effective status (accounts for a trial/period that's lapsed even
+    // before any background job flips the stored status) drives the
+    // expired banner and lock messaging below — never trust the raw
+    // `sub.status` column alone for this.
+    const { data: effectiveStatus } = await window.db.rpc("effective_subscription_status", { p_org_id: orgId });
+    const banner = document.getElementById("expiredBanner");
+    if (["expired", "suspended", "cancelled"].includes(effectiveStatus)) {
+      banner.textContent = "Your subscription has expired. Please renew to continue.";
+      banner.style.display = "block";
+    }
+
+    // Real tournaments belonging to this org (RLS-scoped)
+    const { data: tournaments } = await window.db
+      .from("tournaments")
+      .select("id, name, status, start_date, created_at")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false });
+
+    const list = tournaments || [];
+    document.getElementById("tournamentCount").textContent = list.length;
+
+    if (list.length === 0) {
+      document.getElementById("tournamentsEmpty").style.display = "block";
+    } else {
+      document.getElementById("tournamentsTable").style.display = "table";
+      const body = document.getElementById("tournamentsBody");
+      const td = "padding:8px 6px; border-bottom:1px solid var(--border);";
+      body.innerHTML = list.map((t) => {
+        const name = String(t.name || "").replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+        }[c]));
+        return "<tr><td style='" + td + "'>" + name + "</td><td style='" + td + "'>" + t.status +
+          "</td><td style='" + td + "'>" + (t.start_date ? new Date(t.start_date).toLocaleDateString() : "—") +
+          "</td><td style='" + td + "'>" + new Date(t.created_at).toLocaleDateString() + "</td></tr>";
+      }).join("");
+    }
+
+    const [{ data: limits }, { data: canCreateTournament }, { data: canAddStaff }, { count: staffCount }] = await Promise.all([
+      window.db.rpc("org_plan_limits", { p_org_id: orgId }).then(r => ({ data: r.data && r.data[0] })),
+      window.db.rpc("can_create_tournament", { p_org_id: orgId }),
+      window.db.rpc("can_add_staff", { p_org_id: orgId }),
+      window.db.from("organization_members").select("id", { count: "exact", head: true }).eq("organization_id", orgId).in("role", ["staff", "viewer"]),
+    ]);
+
+    function usageRow(label, used, limit, locked) {
+      const limitLabel = (limit === null || limit === undefined) ? "Unlimited" : used + " / " + limit;
+      const lockBadge = locked ? " <span style='color:var(--ember); font-weight:600;'>🔒 Premium Feature — upgrade to unlock</span>" : "";
+      return "<div style='display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);'>" +
+        "<span>" + label + "</span><span>" + limitLabel + lockBadge + "</span></div>";
+    }
+
+    document.getElementById("usageList").innerHTML =
+      usageRow("Tournaments", list.length, limits ? limits.max_tournaments : null, canCreateTournament === false) +
+      usageRow("Staff & Viewer Seats", staffCount || 0, limits ? limits.max_staff : null, canAddStaff === false) +
+      usageRow("Custom URL", limits && limits.allows_custom_url ? "Available" : "Not on your plan", null, !(limits && limits.allows_custom_url));
+
+    document.getElementById("logoutBtn").addEventListener("click", orgLogout);
+  })();
+</script>
+</body>
+</html>

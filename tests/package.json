@@ -1,0 +1,8 @@
+{
+  "name": "adan-freefire-tests",
+  "private": true,
+  "description": "Dev-only test harness. Run: npm install && node registration_form.test.js (from this folder) or node tests/registration_form.test.js (from project root).",
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

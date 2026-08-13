@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin Login — Pakistan Elite Free Fire Tournament</title>
+<title>Organizer Login — Adan Free Fire Platform</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="stylesheet" href="../css/style.css" />
-<link rel="stylesheet" href="admin.css" />
+<link rel="stylesheet" href="../admin/admin.css" />
 </head>
 <body class="admin-body">
 
 <div class="login-wrap">
   <div class="login-card">
-    <h1>Admin Login</h1>
-    <p class="sub">Owner-only access to the Tournament Dashboard.</p>
+    <h1>Organizer Login</h1>
+    <p class="sub">Manage your organization's tournaments.</p>
 
     <div class="login-error" id="loginError"></div>
 
@@ -29,24 +29,32 @@
       <button type="submit" class="btn btn-primary" id="loginBtn">Log In</button>
     </form>
 
+    <a href="signup.html" class="login-back">Don't have an organization yet? Sign up</a>
     <a href="../index.html" class="login-back">← Back to public site</a>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../supabase.js"></script>
-<script src="admin-auth.js"></script>
+<script src="org-auth.js"></script>
 <script>
   (async function () {
-    // If already logged in as admin, skip straight to dashboard
     const { data: { session } } = await window.db.auth.getSession();
-    if (session) window.location.href = "dashboard.html";
+    if (session) {
+      const { data: membership } = await window.db
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", session.user.id)
+        .limit(1)
+        .maybeSingle();
+      if (membership) window.location.href = "dashboard.html";
+    }
   })();
 
   const params = new URLSearchParams(window.location.search);
   const errEl = document.getElementById("loginError");
-  if (params.get("error") === "unauthorized") {
-    errEl.textContent = "That account does not have admin access.";
+  if (params.get("error") === "no_org") {
+    errEl.textContent = "That account isn't linked to any organization yet.";
     errEl.classList.add("show");
   }
 
@@ -60,7 +68,7 @@
     btn.textContent = "Logging in...";
     errEl.classList.remove("show");
 
-    const result = await adminLogin(email, password);
+    const result = await orgLogin(email, password);
 
     btn.disabled = false;
     btn.textContent = "Log In";
