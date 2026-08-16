@@ -5,6 +5,8 @@ let SPECIAL_DATES = [];
 let PRIZE_POOL = null;
 let PRIZE_DIST = [];
 let REG_SETTINGS = null;
+let BRANDING = null;
+let PENDING_LOGO_DATA_URL = null; // set once a new image is chosen, cleared after save
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -68,6 +70,21 @@ async function loadAll() {
   PRIZE_POOL = prizeRes.data || { total_pool: 0, currency: "PKR" };
   PRIZE_DIST = distRes.data || [];
   REG_SETTINGS = regRes.data || { status: "open", opens_at: null, closes_at: null };
+
+  // Site logo lives on organization_branding, one row per organization —
+  // see the long comment on the Branding card in render() for why this
+  // needs tournaments.organization_id (from migration_saas_foundation.sql)
+  // to exist at all.
+  if (TOURNAMENT.organization_id) {
+    const { data: branding } = await window.db
+      .from("organization_branding")
+      .select("*")
+      .eq("organization_id", TOURNAMENT.organization_id)
+      .maybeSingle();
+    BRANDING = branding || null;
+  } else {
+    BRANDING = null;
+  }
 }
 
 function render() {
@@ -138,6 +155,8 @@ function render() {
         </div>
         <div class="save-row"><button class="btn btn-primary" id="saveRegBtn">Save Registration Status</button></div>
       </div>
+
+      ${renderBrandingCardHtml()}
     </div>
 
     <div class="settings-grid full">
@@ -166,6 +185,7 @@ function render() {
   renderDistRows();
   renderSpecialRows();
   wireEvents();
+  wireBrandingEvents();
 }
 
 function renderDistRows() {
@@ -235,6 +255,134 @@ function renderSpecialRows() {
       toast("Special date removed.");
     });
   });
+}
+
+function renderBrandingCardHtml() {
+  if (!TOURNAMENT.organization_id) {
+    // The logo feature lives on organization_branding, which only exists
+    // once migration_saas_foundation.sql has been run (it's what adds
+    // tournaments.organization_id and backfills a branding row for it).
+    // Show a clear, non-broken explanation instead of a dead upload form.
+    return `
+      <div class="admin-panel">
+        <h2>Site Logo</h2>
+        <p style="color:var(--text-3); font-size:12.5px;">
+          Logo upload needs one migration that hasn't been run yet on this
+          database: <code>migration_saas_foundation.sql</code> (in the
+          project root). Run it once in the Supabase SQL editor, then
+          reload this page — the upload option will appear here.
+        </p>
+      </div>`;
+  }
+
+  const hasLogo = BRANDING && BRANDING.logo_url;
+  return `
+    <div class="admin-panel">
+      <h2>Site Logo</h2>
+      <p style="color:var(--text-3); font-size:12.5px; margin-bottom:14px;">
+        Replaces the "A" mark everywhere it appears on the public site — the
+        navbar, the mobile menu, and the footer.
+      </p>
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
+        <div id="logoPreviewBox" style="width:64px; height:64px; border-radius:14px; background:linear-gradient(135deg, var(--ember), #ff8a4c); display:flex; align-items:center; justify-content:center; font-family:var(--f-display); font-size:26px; color:#fff; overflow:hidden; flex-shrink:0;">
+          ${hasLogo ? `<img id="logoPreviewImg" src="${BRANDING.logo_url}" alt="Current logo" style="width:100%;height:100%;object-fit:cover;" />` : `<span id="logoPreviewImg">A</span>`}
+        </div>
+        <div style="flex:1;">
+          <input type="file" id="fLogoFile" accept="image/*" style="display:none;" />
+          <button type="button" class="btn btn-secondary" id="chooseLogoBtn">Choose Image</button>
+          <p style="color:var(--text-3); font-size:11.5px; margin-top:6px;">Any image works — it's auto-cropped to a square and resized. JPG/PNG, ideally square, under 8MB.</p>
+        </div>
+      </div>
+      <div class="save-row" style="justify-content:flex-start; gap:10px;">
+        <button class="btn btn-primary" id="saveLogoBtn" disabled>Save Logo</button>
+        <button class="btn btn-secondary" id="removeLogoBtn" ${hasLogo ? "" : "style=\"display:none;\""}>Remove Logo</button>
+      </div>
+    </div>`;
+}
+
+// Reads the chosen file, crops it to a centered square, and downsizes it to
+// a small JPEG data URL — small enough to store directly in the
+// organization_branding.logo_url text column (no Supabase Storage bucket
+// needed), while still looking sharp at the ~64px/34px sizes the brand
+// mark actually renders at on the public site.
+function resizeImageToSquareDataUrl(file, maxSize) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Could not read that file."));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("That file doesn't look like a valid image."));
+      img.onload = () => {
+        const side = Math.min(img.width, img.height);
+        const sx = (img.width - side) / 2;
+        const sy = (img.height - side) / 2;
+        const canvas = document.createElement("canvas");
+        canvas.width = maxSize;
+        canvas.height = maxSize;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, maxSize, maxSize);
+        resolve(canvas.toDataURL("image/jpeg", 0.87));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function wireBrandingEvents() {
+  const fileInput = document.getElementById("fLogoFile");
+  const chooseBtn = document.getElementById("chooseLogoBtn");
+  const saveBtn = document.getElementById("saveLogoBtn");
+  const removeBtn = document.getElementById("removeLogoBtn");
+  if (!chooseBtn) return; // organization_id missing — card shows the migration notice instead, nothing to wire
+
+  chooseBtn.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { toast("Please choose an image file.", true); return; }
+    if (file.size > 8 * 1024 * 1024) { toast("That image is over 8MB — please choose a smaller one.", true); return; }
+
+    try {
+      const dataUrl = await resizeImageToSquareDataUrl(file, 256);
+      PENDING_LOGO_DATA_URL = dataUrl;
+      const preview = document.getElementById("logoPreviewBox");
+      preview.innerHTML = `<img id="logoPreviewImg" src="${dataUrl}" alt="New logo preview" style="width:100%;height:100%;object-fit:cover;" />`;
+      saveBtn.disabled = false;
+    } catch (err) {
+      toast(err.message || "Couldn't process that image.", true);
+    }
+  });
+
+  saveBtn.addEventListener("click", async () => {
+    if (!PENDING_LOGO_DATA_URL) return;
+    saveBtn.disabled = true;
+    const payload = { organization_id: TOURNAMENT.organization_id, logo_url: PENDING_LOGO_DATA_URL, updated_at: new Date().toISOString() };
+    const { error } = BRANDING && BRANDING.id
+      ? await window.db.from("organization_branding").update(payload).eq("id", BRANDING.id)
+      : await window.db.from("organization_branding").insert([payload]);
+    if (error) { toast("Failed to save logo.", true); saveBtn.disabled = false; return; }
+    await logAudit("Site Logo Changed", TOURNAMENT.id, { action: "logo_updated" });
+    PENDING_LOGO_DATA_URL = null;
+    toast("Logo saved. It'll appear on the public site on next page load.");
+    await loadAll();
+    render();
+  });
+
+  if (removeBtn) {
+    removeBtn.addEventListener("click", async () => {
+      if (!BRANDING || !BRANDING.id) return;
+      if (!confirm("Remove the current logo? The site will fall back to the default \"A\" mark.")) return;
+      const { error } = await window.db.from("organization_branding").update({ logo_url: null, updated_at: new Date().toISOString() }).eq("id", BRANDING.id);
+      if (error) { toast("Failed to remove logo.", true); return; }
+      await logAudit("Site Logo Changed", TOURNAMENT.id, { action: "logo_removed" });
+      PENDING_LOGO_DATA_URL = null;
+      toast("Logo removed.");
+      await loadAll();
+      render();
+    });
+  }
 }
 
 function wireEvents() {

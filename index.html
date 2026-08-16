@@ -3,6 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- MOBILE UPGRADE: sets view-mobile/view-desktop on <html> before first
+     paint so there is no flash of the wrong layout. Reads a saved choice
+     from localStorage if the visitor has manually picked a view before;
+     otherwise auto-detects from screen width (phones default to mobile,
+     everything else defaults to desktop). Wrapped in try/catch so a
+     blocked localStorage (private browsing etc.) can never break the
+     page — it just falls back to auto-detection for that load. The full
+     toggle UI/logic lives in js/view-toggle.js, loaded later with the
+     other scripts; this inline snippet only sets the initial class. -->
+<script>
+(function () {
+  var mode;
+  try {
+    var saved = localStorage.getItem("adanViewMode");
+    mode = (saved === "mobile" || saved === "desktop")
+      ? saved
+      : (window.matchMedia && window.matchMedia("(max-width: 860px)").matches ? "mobile" : "desktop");
+  } catch (e) {
+    mode = (window.matchMedia && window.matchMedia("(max-width: 860px)").matches) ? "mobile" : "desktop";
+  }
+  document.documentElement.classList.add(mode === "mobile" ? "view-mobile" : "view-desktop");
+})();
+</script>
 <title>Adan Free Fire Tournament — Live on YouTube | Register Now</title>
 <meta name="description" content="Adan Free Fire Tournament — a competitive Free Fire esports event in Pakistan. Register your squad, check the live leaderboard, and watch every match live on YouTube.">
 <meta name="keywords" content="Free Fire Tournament, Free Fire Tournament Pakistan, Free Fire Live Tournament, Free Fire Esports, Free Fire Live YouTube, Free Fire Competition">
@@ -21,6 +44,14 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/gaming-3d.css">
+<!-- MOBILE UPGRADE: additive-only file, loaded last so it can layer mobile
+     styles on top of style.css/gaming-3d.css without editing either.
+     Nothing in it removes or renames a class — see the file header for
+     details. -->
+<link rel="stylesheet" href="css/mobile.css">
+<!-- Feature update: Gaming Zone / Sensitivity Finder / Aim Trainer / Tips.
+     Additive-only, same pattern as css/mobile.css above. -->
+<link rel="stylesheet" href="css/gaming-zone.css">
 </head>
 <body>
 
@@ -50,6 +81,22 @@
      to #site3d in gaming-3d.css for why. Purely structural: no styling,
      no ID/class any script reads, no effect on layout. -->
 <div id="site3d">
+<!-- ============================================================ VIEW SWITCH
+     MOBILE UPGRADE: manual Desktop/Mobile view toggle. Static in the
+     normal page flow (not fixed/floating) so it never covers content and
+     scrolls away like any other element. Visible in both views so the
+     user can switch either direction at any time. Initial pressed state
+     is set by js/view-toggle.js to match whatever class the inline
+     head script already applied to <html> — see that script for the
+     detection/persistence logic (localStorage key "adanViewMode"). -->
+<div class="view-switch" id="viewSwitch" role="group" aria-label="Site view">
+  <button type="button" class="view-switch-btn" id="viewSwitchDesktop" data-view="desktop" aria-pressed="false">
+    <span aria-hidden="true">🖥</span> Desktop View
+  </button>
+  <button type="button" class="view-switch-btn" id="viewSwitchMobile" data-view="mobile" aria-pressed="false">
+    <span aria-hidden="true">📱</span> Mobile View
+  </button>
+</div>
 <div id="nav-root">
   <div class="ticker-bar" aria-hidden="true">
     <div class="ticker-track" id="tickerTrack"></div>
@@ -66,6 +113,7 @@
         <a href="#live">Live</a>
         <a href="#schedule">Schedule</a>
         <a href="#leaderboard">Leaderboard</a>
+        <a href="#gamingZone">Gaming Zone</a>
         <a href="#rules">Rules</a>
         <a href="#faq">FAQ</a>
       </div>
@@ -78,17 +126,6 @@
       </div>
     </div>
   </nav>
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="#home">Home</a>
-    <a href="#tournament">Tournament</a>
-    <a href="#live">Live</a>
-    <a href="#schedule">Schedule</a>
-    <a href="#leaderboard">Leaderboard</a>
-    <a href="#rules">Rules</a>
-    <a href="#faq">FAQ</a>
-    <a href="#register">Register</a>
-    <a href="#live" class="btn btn-primary btn-block">Watch Live</a>
-  </div>
 </div>
 
 <!-- ============================================================ HERO -->
@@ -407,6 +444,128 @@
   </div>
 </section>
 
+<!-- ============================================================ GAMING ZONE
+     Feature 1/2/8/9: YouTube-gated free games. See js/gaming-zone.js for
+     the full locked/unlocked + verification flow; nothing here fakes
+     unlocked state — #gamingZoneBody is populated entirely by that script
+     after a real check_youtube_verification() database read. -->
+<section class="section" id="gamingZone">
+  <div class="container">
+    <div class="eyebrow reveal">Bonus</div>
+    <h2 class="section-title reveal">🎁 Free <span class="text-gradient">Gaming Zone</span></h2>
+    <p class="section-sub reveal">Subscribe to our YouTube channel to unlock free games, gaming tools and Free Fire resources.</p>
+    <div id="gamingZoneBody">
+      <div class="gz-loading">Loading…</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ SENSITIVITY FINDER
+     Feature 3/4/5. Device database: js/sensitivity-data.js. UI + the
+     deterministic calculator: js/sensitivity-finder.js. -->
+<section class="section" id="sensitivityFinder">
+  <div class="container">
+    <div class="eyebrow reveal">Gameplay</div>
+    <h2 class="section-title reveal">🎯 Free Fire <span class="text-gradient">Sensitivity Finder</span></h2>
+    <p class="section-sub reveal">Optimized starting sensitivity for your device — not a guaranteed headshot sensitivity. Sensitivity depends on your device, screen size, refresh rate, FPS, HUD layout, fire button size, and your own drag technique.</p>
+
+    <div class="sf-panel reveal">
+      <div class="sf-tabs">
+        <button type="button" class="sf-tab-btn active" data-tab="sfFinderPanel">Find My Device</button>
+        <button type="button" class="sf-tab-btn" data-tab="sfCalcPanel">Advanced Calculator</button>
+      </div>
+
+      <div class="sf-tab-panel active" id="sfFinderPanel">
+        <p class="sf-detected" id="sfDetected"></p>
+        <div class="sf-field-row">
+          <select id="sfBrand"><option value="">Select brand…</option></select>
+          <select id="sfModel"><option value="">Select model…</option></select>
+          <select id="sfStyle">
+            <option value="balanced">Balanced</option>
+            <option value="aggressive">Aggressive</option>
+            <option value="headshot">Headshot Focus</option>
+            <option value="smooth">Smooth Aim</option>
+          </select>
+        </div>
+        <div id="sfResults"><p style="color:var(--text-3);">Select your brand and model to see a recommended preset.</p></div>
+      </div>
+
+      <div class="sf-tab-panel" id="sfCalcPanel">
+        <form id="sfCalcForm">
+          <div class="sf-field-row">
+            <select name="tier" required>
+              <option value="entry">Entry-level device</option>
+              <option value="mid">Mid-range device</option>
+              <option value="high" selected>High-end device</option>
+              <option value="flagship">Flagship device</option>
+            </select>
+            <select name="refreshHz">
+              <option value="60">60Hz screen</option>
+              <option value="90">90Hz screen</option>
+              <option value="120" selected>120Hz screen</option>
+              <option value="144">144Hz screen</option>
+            </select>
+            <input name="fps" type="number" placeholder="Average in-game FPS (optional)" min="20" max="144" />
+          </div>
+          <div class="sf-field-row">
+            <select name="playStyle">
+              <option value="balanced">Balanced</option>
+              <option value="aggressive">Aggressive</option>
+              <option value="headshot">Headshot Focus</option>
+              <option value="smooth">Smooth Aim</option>
+            </select>
+            <select name="dragFingers">
+              <option value="1">1-finger drag</option>
+              <option value="2" selected>2-finger claw</option>
+              <option value="4">4-finger claw</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Calculate</button>
+          </div>
+        </form>
+        <div id="sfCalcResults"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ AIM TRAINER
+     Feature 7. Standalone, always available (unless disabled in admin) —
+     not YouTube-gated, unlike the Gaming Zone above. Lazy-loads the same
+     js/games/aim-reflex.js module the Gaming Zone game uses. -->
+<section class="section-tight" id="aimTrainerSection">
+  <div class="container">
+    <div class="eyebrow reveal">Practice</div>
+    <h2 class="section-title reveal">Aim <span class="text-gradient">Practice</span></h2>
+    <p class="section-sub reveal">Random targets, tracked score/accuracy/reaction time. A browser training tool only — it doesn't read or control Free Fire.</p>
+    <div style="text-align:center;">
+      <button type="button" class="btn btn-primary" id="aimTrainerLaunchBtn">Launch Aim Trainer</button>
+    </div>
+    <div id="aimTrainerMount"></div>
+  </div>
+</section>
+
+<!-- ============================================================ FF TIPS -->
+<section class="section" id="ffTipsSection">
+  <div class="container">
+    <div class="eyebrow reveal">Guides</div>
+    <h2 class="section-title reveal">🔥 Free Fire <span class="text-gradient">Tips &amp; Tricks</span></h2>
+    <div class="ff-tips-grid">
+      <div class="ff-tip-card reveal"><h4>Sensitivity Adjustment</h4><p>Start from the Sensitivity Finder above, then adjust in small ±5 increments per scope level until your crosshair lands where you expect it to, not past it.</p></div>
+      <div class="ff-tip-card reveal"><h4>HUD Positioning</h4><p>Keep fire, jump, and crouch buttons within natural thumb reach without stretching — a cramped HUD costs reaction time more than low sensitivity ever does.</p></div>
+      <div class="ff-tip-card reveal"><h4>Drag Technique</h4><p>Practice a short, controlled upward drag rather than a long swipe — it's faster to repeat and easier to stop exactly on target.</p></div>
+      <div class="ff-tip-card reveal"><h4>Recoil Control</h4><p>Learn each gun's pattern in the practice range first; recoil control is muscle memory, not a sensitivity setting.</p></div>
+      <div class="ff-tip-card reveal"><h4>Crosshair Placement</h4><p>Pre-aim at head height around corners and doorways so your first shot on contact is already close to a headshot.</p></div>
+      <div class="ff-tip-card reveal"><h4>Movement Practice</h4><p>Drill strafing while shooting in the training range — standing still is the single biggest reason for missed close-range fights.</p></div>
+      <div class="ff-tip-card reveal"><h4>Close-Range Aim</h4><p>Lower your general/red-dot sensitivity slightly if you consistently overshoot close targets; it's more common than being too slow.</p></div>
+      <div class="ff-tip-card reveal"><h4>Long-Range Aim</h4><p>Use small, deliberate drag adjustments at 2x/4x/sniper zoom — large sweeps at high zoom overshoot far more than they correct.</p></div>
+      <div class="ff-tip-card reveal"><h4>Reaction Training</h4><p>The Reaction Test and Quick Tap games in the Gaming Zone are genuinely useful daily warm-ups, not just for fun.</p></div>
+      <div class="ff-tip-card reveal"><h4>Device Performance</h4><p>Close background apps before playing, and enable any "Game Mode"/performance mode your device offers to reduce frame drops mid-fight.</p></div>
+      <div class="ff-tip-card reveal"><h4>FPS Stability</h4><p>A stable 40fps beats a spiky 60fps for aim consistency — check in-game graphics settings if your frame rate fluctuates a lot.</p></div>
+      <div class="ff-tip-card reveal"><h4>Touch Response</h4><p>Remove any screen protector with poor touch response, and clean your screen — both measurably affect drag precision.</p></div>
+    </div>
+  </div>
+</section>
+
 <!-- ============================================================ FAQ -->
 <section class="section" id="faq">
   <div class="container">
@@ -437,6 +596,30 @@
   </div>
 </footer>
 </div><!-- /#site3d -->
+
+<!-- MOBILE UPGRADE (bug fix, not a mobile-only change): .mobile-menu moved
+     here from inside #nav-root/#site3d. It uses `position: fixed`, and
+     #site3d has `perspective` on it (for the card-tilt effect) — per CSS,
+     that makes #site3d the *containing block* for any `position: fixed`
+     descendant, the exact same issue #introOverlay had (see the long
+     comment on #site3d in css/gaming-3d.css). That meant the menu backdrop
+     was sizing itself to the full page height (over 10,000px in testing)
+     instead of just the viewport below the navbar. Moving it here, as a
+     sibling of #site3d instead of a descendant, fixes that regardless of
+     which view (mobile/desktop) is active. Nothing else about it changed:
+     same id, same links, same open/close JS in js/app.js. -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#home">Home</a>
+  <a href="#tournament">Tournament</a>
+  <a href="#live">Live</a>
+  <a href="#schedule">Schedule</a>
+  <a href="#leaderboard">Leaderboard</a>
+  <a href="#gamingZone">Gaming Zone</a>
+  <a href="#rules">Rules</a>
+  <a href="#faq">FAQ</a>
+  <a href="#register">Register</a>
+  <a href="#live" class="btn btn-primary btn-block">Watch Live</a>
+</div>
 
 <!-- ============================================================ MOBILE STICKY CTA -->
 <div class="mobile-cta-bar" id="mobileCtaBar">
@@ -474,5 +657,16 @@
 <script src="js/app.js"></script>
 <script src="js/realtime.js"></script>
 <script src="js/effects.js"></script>
+<!-- MOBILE UPGRADE: wires the two view-switch buttons. Only touches
+     #viewSwitch/#viewSwitchDesktop/#viewSwitchMobile and the "view-mobile"/
+     "view-desktop" class on <html> — doesn't touch anything app.js,
+     realtime.js, effects.js, or the admin panel own. -->
+<script src="js/view-toggle.js"></script>
+<!-- Feature update: Gaming Zone / Sensitivity Finder / Aim Trainer.
+     Individual games in js/games/ are intentionally NOT listed here —
+     gaming-zone.js lazy-loads each one only when the player opens it. -->
+<script src="js/sensitivity-data.js"></script>
+<script src="js/sensitivity-finder.js"></script>
+<script src="js/gaming-zone.js"></script>
 </body>
 </html>

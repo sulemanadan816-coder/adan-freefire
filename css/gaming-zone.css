@@ -1,0 +1,73 @@
+/* =========================================================================
+   GAMING ZONE / SENSITIVITY FINDER / AIM TRAINER / TIPS — additive only.
+   Reuses existing design tokens (--bg-panel, --ember, --f-display, etc.)
+   from css/style.css so these new sections look native to the site, not
+   bolted on. Doesn't touch style.css/gaming-3d.css/mobile.css at all.
+   ========================================================================= */
+
+/* ---- Locked state ---- */
+.gz-locked { text-align: center; padding: 40px 20px; max-width: 480px; margin: 0 auto; }
+.gz-locked-icon { font-size: 46px; margin-bottom: 12px; }
+.gz-locked h3 { font-family: var(--f-display); font-size: 26px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.gz-locked p { color: var(--text-2); font-size: 14.5px; margin-bottom: 20px; }
+.gz-locked-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 16px; }
+.gz-locked-note { color: var(--text-3); font-size: 12px; }
+
+/* ---- Unlocked state ---- */
+.gz-unlocked-banner {
+  text-align: center; font-family: var(--f-display); font-size: 22px; letter-spacing: 0.03em;
+  text-transform: uppercase; color: var(--cyan); margin-bottom: 20px;
+}
+.gz-games-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 860px) { .gz-games-grid { grid-template-columns: repeat(2, 1fr); } }
+.gz-game-card {
+  background: var(--bg-panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 22px 14px; font-family: var(--f-body); font-weight: 700; font-size: 14.5px; color: var(--text-1);
+  cursor: pointer; transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.gz-game-card:hover { border-color: var(--ember); transform: translateY(-2px); }
+
+.gz-game-stage { margin-top: 20px; }
+.gz-game-stage-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  font-family: var(--f-display); font-size: 18px; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.gz-game-hud {
+  display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-bottom: 12px;
+  font-family: var(--f-mono); font-size: 12.5px; color: var(--text-2);
+}
+.gz-game-hud b { color: var(--text-1); }
+.gz-game-controls { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+.gz-loading { text-align: center; padding: 40px 0; color: var(--text-3); }
+
+/* ---- Sensitivity Finder ---- */
+.sf-panel { background: var(--bg-panel-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.sf-detected { color: var(--text-3); font-size: 12.5px; margin-bottom: 16px; }
+.sf-field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+@media (max-width: 768px) { .sf-field-row { grid-template-columns: 1fr; } }
+.sf-field-row select, .sf-field-row input {
+  width: 100%; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--bg-panel-3);
+  border: 1px solid var(--border); color: var(--text-1); font-family: var(--f-body); font-size: 14px;
+}
+.sf-result-note { color: var(--text-3); font-size: 12.5px; margin-bottom: 16px; padding: 10px 14px; background: rgba(255,77,28,0.08); border-left: 2px solid var(--ember); border-radius: 4px; }
+.sf-result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+@media (max-width: 480px) { .sf-result-grid { grid-template-columns: repeat(2, 1fr); } }
+.sf-result-cell { background: var(--bg-panel-3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+.sf-result-cell span { display: block; color: var(--text-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.sf-result-cell b { font-family: var(--f-display); font-size: 24px; color: var(--ember); }
+.sf-result-extra { font-size: 13.5px; color: var(--text-2); padding-top: 12px; border-top: 1px solid var(--border); }
+.sf-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.sf-tab-btn {
+  padding: 8px 16px; border-radius: 100px; background: var(--bg-panel-3); border: 1px solid var(--border);
+  color: var(--text-3); font-family: var(--f-mono); font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer;
+}
+.sf-tab-btn.active { background: var(--ember-soft); border-color: var(--ember); color: var(--ember); }
+.sf-tab-panel { display: none; }
+.sf-tab-panel.active { display: block; }
+
+/* ---- Tips section ---- */
+.ff-tips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 860px) { .ff-tips-grid { grid-template-columns: 1fr; } }
+.ff-tip-card { background: var(--bg-panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; }
+.ff-tip-card h4 { font-family: var(--f-display); font-size: 18px; letter-spacing: 0.02em; margin-bottom: 8px; color: var(--cyan); }
+.ff-tip-card p { color: var(--text-2); font-size: 13.5px; line-height: 1.5; }

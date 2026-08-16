@@ -1,0 +1,359 @@
+/* =========================================================================
+   ADAN FREE FIRE TOURNAMENT — MOBILE UPGRADE
+   -------------------------------------------------------------------------
+   This file is 100% additive on top of style.css + gaming-3d.css. It does
+   not rename, remove, or redefine a single existing class outside of this
+   file — every rule here either:
+     (a) styles the two new elements this upgrade adds (#viewSwitch and its
+         buttons), or
+     (b) is scoped behind `html.view-mobile` / `html.view-desktop`, classes
+         set on <html> by the inline script in index.html's <head> and
+         kept in sync by js/view-toggle.js.
+
+   Why class-scoped instead of plain @media queries: the brief asks for a
+   MANUAL Desktop/Mobile switch that overrides the real screen size (e.g.
+   previewing the mobile layout on a desktop monitor, or forcing desktop
+   layout on a phone). A plain `@media (max-width: ...)` rule can't be
+   turned off manually — only a class can. The `html.view-mobile` blocks
+   below are the actual mobile design; the `html.view-desktop` blocks near
+   the bottom exist purely to CANCEL style.css's own existing
+   `@media (max-width: ...)` rules on the rare occasion someone forces
+   Desktop View while genuinely on a narrow phone screen.
+
+   style.css's original @media rules are left completely untouched and
+   still apply as a plain-CSS safety net for the ~1-in-a-million case where
+   JavaScript is fully disabled (so the inline head script never runs) —
+   that visitor still gets a reasonably responsive layout, just without
+   the manual switch or this file's extra polish.
+   ========================================================================= */
+
+/* =========================================================================
+   VIEW SWITCH — the "🖥 Desktop View / 📱 Mobile View" control.
+   Static in normal page flow (not fixed/floating): it can never cover
+   content, and simply scrolls away like anything else. Shown in BOTH
+   views since the whole point is switching either direction at any time.
+   ========================================================================= */
+.view-switch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+.view-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: rgba(245, 243, 239, 0.04);
+  border: 1px solid var(--border-strong);
+  border-radius: 100px;
+  padding: 7px 14px;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.view-switch-btn:hover { color: var(--text-1); }
+.view-switch-btn[aria-pressed="true"] {
+  background: var(--ember-soft);
+  border-color: var(--ember);
+  color: var(--ember);
+}
+@media (max-width: 480px) {
+  .view-switch-btn { font-size: 10px; padding: 7px 11px; }
+}
+
+/* =========================================================================
+   MOBILE VIEW — general safety net (prevents horizontal scroll / overflow
+   no matter what a section below might otherwise do).
+   ========================================================================= */
+html.view-mobile body,
+html.view-mobile .container,
+html.view-mobile section,
+html.view-mobile header {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+html.view-mobile .container { padding: 0 18px; }
+
+/* Comfortable, non-zooming touch targets. iOS Safari auto-zooms into any
+   input/select with a computed font-size under 16px on focus — forcing
+   16px here is what stops that "why does the page zoom in" mobile bug.
+   Excludes .btn-sm (nav "Watch Live", watch-live action row, etc.) and
+   .mobile-cta-bar buttons, which already have their own compact sizing
+   tuned to sit next to a brand/logo or side-by-side in a slim bar — this
+   only widens the min-height slightly for those instead of also bumping
+   the horizontal padding, so nothing crowds its neighbour. */
+html.view-mobile .btn:not(.btn-sm) { min-height: 46px; padding: 13px 22px; }
+html.view-mobile .btn-sm { min-height: 40px; }
+html.view-mobile .mobile-cta-bar .btn { min-height: 44px; padding: 13px 10px; font-size: 13px; }
+html.view-mobile .field input,
+html.view-mobile .field select,
+html.view-mobile .field textarea {
+  font-size: 16px;
+  padding: 13px 14px;
+}
+
+/* =========================================================================
+   NAV — reuse the site's own existing hamburger/mobile-menu pattern
+   (already fully wired up in js/app.js), just force it on via class
+   instead of only at a narrow real viewport.
+   ========================================================================= */
+html.view-mobile .nav-links { display: none; }
+html.view-mobile .nav-cta .btn-secondary { display: none; }
+html.view-mobile .hamburger { display: flex; }
+html.view-mobile .mobile-menu { display: block; }
+html.view-mobile .navbar .container { gap: 10px; }
+html.view-mobile .brand { flex-shrink: 1; min-width: 0; }
+html.view-mobile .brand-mark { flex-shrink: 0; }
+html.view-mobile .brand-name {
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.view-mobile .nav-cta { flex-shrink: 0; }
+html.view-mobile .ticker-track { gap: 30px; }
+
+/* =========================================================================
+   HERO
+   ========================================================================= */
+html.view-mobile .hero { padding: 28px 0 36px; min-height: 0; }
+html.view-mobile .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+html.view-mobile .hero h1 { font-size: clamp(32px, 10vw, 46px); }
+html.view-mobile .hero-sub { font-size: 15px; max-width: 100%; }
+html.view-mobile .hero-facts { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+html.view-mobile .hero-fact-value { font-size: 21px; }
+html.view-mobile .hero-actions { flex-direction: column; align-items: stretch; }
+html.view-mobile .hero-actions .btn { width: 100%; }
+html.view-mobile .hero-panel { padding: 18px; }
+html.view-mobile .countdown-grid { gap: 7px; }
+html.view-mobile .countdown-num { font-size: clamp(18px, 7vw, 26px); }
+
+/* =========================================================================
+   STATS STRIP
+   ========================================================================= */
+html.view-mobile .stats-strip { grid-template-columns: repeat(2, 1fr); }
+html.view-mobile .stat-cell { padding: 20px 12px; }
+
+/* =========================================================================
+   TOURNAMENT OVERVIEW / INFO GRID — one comfortable column, not a squeeze
+   ========================================================================= */
+html.view-mobile .info-grid { grid-template-columns: 1fr; gap: 12px; }
+html.view-mobile .section { padding: 48px 0; }
+html.view-mobile .section-tight { padding: 40px 0; }
+html.view-mobile .section-title { font-size: clamp(28px, 9vw, 38px); }
+html.view-mobile .section-sub { font-size: 14.5px; margin-bottom: 28px; }
+
+/* =========================================================================
+   WATCH LIVE
+   ========================================================================= */
+html.view-mobile .watch-info-bar { flex-direction: column; align-items: stretch; padding: 16px; }
+html.view-mobile .watch-info-actions { width: 100%; }
+html.view-mobile .watch-info-actions .btn { flex: 1 1 auto; }
+html.view-mobile .watch-title { font-size: 17px; }
+
+/* =========================================================================
+   REGISTRATION
+   ========================================================================= */
+html.view-mobile .reg-wrap { grid-template-columns: 1fr; gap: 24px; }
+html.view-mobile .form-card { padding: 20px; }
+html.view-mobile .form-grid { grid-template-columns: 1fr; gap: 12px; }
+html.view-mobile .player-row { grid-template-columns: 1fr; gap: 8px; margin-bottom: 14px; }
+html.view-mobile .player-row .rm { width: 100%; }
+html.view-mobile .add-player-btn { min-height: 46px; }
+
+/* Payment card */
+html.view-mobile .pay-card { padding: 20px 16px; }
+html.view-mobile .pay-number-row { flex-wrap: wrap; }
+html.view-mobile .pay-number { font-size: 18px; }
+html.view-mobile .pay-copy-btn { min-height: 38px; }
+
+/* =========================================================================
+   LEADERBOARD
+   ========================================================================= */
+html.view-mobile .lb-toolbar { flex-direction: column; align-items: stretch; }
+html.view-mobile .lb-search { width: 100%; }
+html.view-mobile .lb-search input { width: 100%; }
+html.view-mobile .lb-sorts { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+html.view-mobile .chip { flex: 0 0 auto; }
+html.view-mobile .podium { grid-template-columns: 1fr; gap: 12px; }
+html.view-mobile .podium-card.p1,
+html.view-mobile .podium-card.p2,
+html.view-mobile .podium-card.p3 { order: initial; }
+html.view-mobile .lb-table { min-width: 560px; }
+html.view-mobile .lb-table th,
+html.view-mobile .lb-table td { padding: 10px 12px; font-size: 12.5px; }
+
+/* =========================================================================
+   MATCH CENTER
+   ========================================================================= */
+html.view-mobile .match-grid { grid-template-columns: 1fr; gap: 14px; }
+
+/* =========================================================================
+   SCHEDULE / TIMELINE
+   ========================================================================= */
+html.view-mobile .timeline { padding-left: 22px; }
+html.view-mobile .tl-head { font-size: 18px; }
+html.view-mobile .tl-detail { font-size: 13px; }
+
+/* =========================================================================
+   ROOM DETAILS
+   ========================================================================= */
+html.view-mobile .room-card { padding: 24px 18px; }
+html.view-mobile .room-grid { grid-template-columns: 1fr; gap: 10px; }
+
+/* =========================================================================
+   RULES / FAQ ACCORDIONS
+   ========================================================================= */
+html.view-mobile .acc-trigger { padding: 15px 16px; font-size: 14px; }
+html.view-mobile .acc-panel-inner { padding: 0 16px 16px; font-size: 13.5px; }
+
+/* =========================================================================
+   FAIR PLAY
+   ========================================================================= */
+html.view-mobile .fairplay-grid { grid-template-columns: 1fr; gap: 14px; }
+
+/* =========================================================================
+   PRIZE POOL
+   ========================================================================= */
+html.view-mobile .prize-podium { grid-template-columns: 1fr; gap: 12px; }
+html.view-mobile .bonus-grid { grid-template-columns: 1fr; gap: 12px; }
+html.view-mobile .prize-amount { font-size: 32px; }
+
+/* =========================================================================
+   COMMUNITY / SOCIAL BUTTONS
+   ========================================================================= */
+html.view-mobile .social-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+html.view-mobile .social-btn { padding: 18px 10px; }
+
+/* =========================================================================
+   FOOTER
+   ========================================================================= */
+html.view-mobile .footer-grid { flex-direction: column; align-items: flex-start; gap: 16px; }
+html.view-mobile .footer-links { flex-direction: column; gap: 12px; }
+html.view-mobile footer { padding: 40px 0 100px; }
+
+/* =========================================================================
+   TOASTS — style.css pins these to top:20px;right:20px, which on a phone
+   screen collides with the view switch / navbar sitting right there.
+   Move them to hover just above the mobile sticky CTA bar instead, full
+   width with a comfortable margin, so they never overlap the nav or get
+   clipped by a narrow screen.
+   ========================================================================= */
+html.view-mobile .toast-stack {
+  top: auto;
+  bottom: calc(74px + env(safe-area-inset-bottom) + 12px);
+  left: 12px;
+  right: 12px;
+}
+html.view-mobile .toast { min-width: 0; width: 100%; }
+
+/* =========================================================================
+   FLOATING UI (mobile CTA bar / WhatsApp float / back-to-top / modal)
+   ========================================================================= */
+html.view-mobile .mobile-cta-bar { display: flex; }
+html.view-mobile body { padding-bottom: 74px; }
+html.view-mobile .back-to-top { bottom: 84px; }
+html.view-mobile .whatsapp-float { bottom: 128px; padding: 12px; }
+html.view-mobile .whatsapp-float-label { display: none; }
+html.view-mobile .modal-box { padding: 24px 20px; }
+html.view-mobile .modal-box h3 { font-size: 22px; }
+
+/* =========================================================================
+   3D EFFECTS — dialed back on mobile for touch + performance, matching the
+   same approach gaming-3d.css already uses for `@media (pointer: coarse)`.
+   ========================================================================= */
+html.view-mobile .card,
+html.view-mobile .match-card,
+html.view-mobile .prize-card,
+html.view-mobile .room-card,
+html.view-mobile .pay-card,
+html.view-mobile .podium-card {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+html.view-mobile .card:hover,
+html.view-mobile .match-card:hover,
+html.view-mobile .prize-card:hover,
+html.view-mobile .room-card:hover,
+html.view-mobile .pay-card:hover,
+html.view-mobile .podium-card:hover {
+  transform: translateY(-4px) translateZ(0);
+}
+html.view-mobile .card::after,
+html.view-mobile .match-card::after,
+html.view-mobile .prize-card::after,
+html.view-mobile .room-card::after,
+html.view-mobile .pay-card::after,
+html.view-mobile .podium-card::after {
+  display: none;
+}
+html.view-mobile .intro-reticle { width: 130px; height: 130px; }
+html.view-mobile .intro-title { font-size: clamp(22px, 8vw, 34px); }
+
+/* Fine-tuning across common phone widths (390/375/320 etc.) — refines the
+   view-mobile design above, does not change whether it applies. */
+@media (max-width: 414px) {
+  html.view-mobile .hero-facts { gap: 10px; }
+  html.view-mobile .hero-fact-value { font-size: 19px; }
+  html.view-mobile .countdown-grid { gap: 6px; }
+}
+@media (max-width: 375px) {
+  html.view-mobile .container { padding: 0 14px; }
+  html.view-mobile .hero h1 { font-size: 30px; }
+  html.view-mobile .section-title { font-size: 26px; }
+  html.view-mobile .pay-number { font-size: 16px; }
+}
+@media (max-width: 320px) {
+  html.view-mobile .hero-facts { grid-template-columns: 1fr 1fr; }
+  html.view-mobile .countdown-num { font-size: 16px; }
+  html.view-mobile .stats-strip { grid-template-columns: 1fr; }
+}
+
+/* =========================================================================
+   DESKTOP VIEW (forced) — cancels style.css's own @media rules for the
+   case where someone manually picks Desktop View while the real screen is
+   narrow (e.g. previewing on a phone). Each rule below just restores the
+   original desktop value from style.css. Specificity (html.view-desktop
+   + a class) is naturally higher than style.css's plain-class media
+   rules, so no !important is needed anywhere here.
+   ========================================================================= */
+html.view-desktop .hero-grid { grid-template-columns: 1.15fr 0.85fr; gap: 56px; }
+html.view-desktop .reg-wrap { grid-template-columns: 0.9fr 1.1fr; gap: 40px; }
+html.view-desktop .info-grid { grid-template-columns: repeat(4, 1fr); }
+html.view-desktop .match-grid { grid-template-columns: repeat(3, 1fr); }
+html.view-desktop .fairplay-grid { grid-template-columns: repeat(3, 1fr); }
+html.view-desktop .bonus-grid { grid-template-columns: repeat(3, 1fr); }
+html.view-desktop .room-grid { grid-template-columns: repeat(3, 1fr); }
+html.view-desktop .nav-links { display: flex; }
+html.view-desktop .nav-cta .btn-secondary { display: inline-flex; }
+html.view-desktop .hamburger { display: none; }
+html.view-desktop .mobile-menu { display: none; }
+html.view-desktop .stats-strip { grid-template-columns: repeat(4, 1fr); }
+html.view-desktop .podium { grid-template-columns: 1fr 1fr 1fr; }
+html.view-desktop .podium-card.p1 { order: 2; }
+html.view-desktop .podium-card.p2 { order: 1; }
+html.view-desktop .podium-card.p3 { order: 3; }
+html.view-desktop .prize-podium { grid-template-columns: repeat(3, 1fr); }
+html.view-desktop .mobile-cta-bar { display: none; }
+html.view-desktop body { padding-bottom: 0; }
+html.view-desktop .section { padding: 96px 0; }
+html.view-desktop .hero { padding: 64px 0 56px; min-height: calc(100svh - var(--nav-h) - var(--ticker-h)); }
+html.view-desktop .hero-facts { grid-template-columns: repeat(3, auto); row-gap: 0; }
+html.view-desktop .form-grid { grid-template-columns: 1fr 1fr; }
+html.view-desktop .back-to-top { bottom: 90px; }
+html.view-desktop .container { padding: 0 24px; }
+html.view-desktop .hero-actions { flex-direction: row; align-items: center; }
+html.view-desktop .hero-actions .btn { width: auto; }
+html.view-desktop .countdown-grid { gap: 10px; }
+html.view-desktop .whatsapp-float { bottom: 144px; padding: 12px 16px; }
+html.view-desktop .whatsapp-float-label { display: inline; }
